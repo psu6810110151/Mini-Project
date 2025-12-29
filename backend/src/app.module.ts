@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AppService } from './app.service';
       entities: [__dirname + '/**/*.entity{.ts,.js}'], // โหลด Entity อัตโนมัติ
       synchronize: true,       // (Dev Only) แก้โค้ดแล้วแก้ตารางใน DB ให้เลย
     }),
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
