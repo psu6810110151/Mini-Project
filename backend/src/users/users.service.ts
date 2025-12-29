@@ -1,16 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User, UserRole } from './entities/user.entity'; // 👈 Import UserRole เพิ่ม
 import { Repository } from 'typeorm';
+import { User } from './entities/user.entity'; // 👈 เช็คบรรทัดนี้ ต้องมี!
+import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
-
+import { UserRole } from './entities/user.entity'; // ถ้ามีการใช้ UserRole
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-  ) {}
+  ) { }
+
+  // เพิ่มต่อท้ายใน class UsersService
+  async findOneByUsername(username: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { username } });
+  }
 
   async create(createUserDto: CreateUserDto) {
     // 1. เข้ารหัส Password
@@ -22,19 +27,12 @@ export class UsersService {
       ...createUserDto,
       password: hashedPassword,
       // 👇 กันเหนียว: ถ้าไม่ส่ง role มา หรือส่งผิด ให้เป็น USER ไว้ก่อน
-      role: createUserDto.role || UserRole.USER, 
+      role: createUserDto.role || UserRole.USER,
     });
 
     // 3. บันทึกลง Database
     return this.usersRepository.save(newUser);
   }
-
-  // 👇👇👇 เพิ่มฟังก์ชันนี้สำหรับ Login ครับ (สำคัญ!) 👇👇👇
- // แก้บรรทัดนี้: เปลี่ยน | undefined เป็น | null
-  async findOneByUsername(username: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { username } });
-  }
-  // 👆👆👆
 
   findAll() {
     return this.usersRepository.find();

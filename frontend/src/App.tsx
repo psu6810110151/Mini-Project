@@ -1,14 +1,19 @@
-import Login from './Login'; // Import มา
+import { useState } from 'react';
+import Login from './Login';
+import Dashboard from './Dashboard'; // Import มาใหม่
 
 function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   return (
     <div className="min-h-screen bg-gray-100 p-10">
-      <h1 className="text-3xl font-bold text-center text-blue-600 mb-10">
-        🚄 ระบบจองตั๋วรถไฟ (Mini-Project)
-      </h1>
-      
-      {/* วาง Component Login ตรงนี้ */}
-      <Login /> 
+      {!isLoggedIn ? (
+        // ถ้ายังไม่ Login ให้โชว์หน้า Login
+        <Login onLoginSuccess={() => setIsLoggedIn(true)} />
+      ) : (
+        // ถ้า Login แล้ว ให้โชว์ Dashboard
+        <Dashboard />
+      )}
     </div>
   );
 }

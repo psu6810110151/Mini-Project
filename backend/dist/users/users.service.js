@@ -48,13 +48,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const user_entity_1 = require("./entities/user.entity");
 const typeorm_2 = require("typeorm");
+const user_entity_1 = require("./entities/user.entity");
 const bcrypt = __importStar(require("bcrypt"));
+const user_entity_2 = require("./entities/user.entity");
 let UsersService = class UsersService {
     usersRepository;
     constructor(usersRepository) {
         this.usersRepository = usersRepository;
+    }
+    async findOneByUsername(username) {
+        return this.usersRepository.findOne({ where: { username } });
     }
     async create(createUserDto) {
         const salt = await bcrypt.genSalt();
@@ -62,12 +66,9 @@ let UsersService = class UsersService {
         const newUser = this.usersRepository.create({
             ...createUserDto,
             password: hashedPassword,
-            role: createUserDto.role || user_entity_1.UserRole.USER,
+            role: createUserDto.role || user_entity_2.UserRole.USER,
         });
         return this.usersRepository.save(newUser);
-    }
-    async findOneByUsername(username) {
-        return this.usersRepository.findOne({ where: { username } });
     }
     findAll() {
         return this.usersRepository.find();

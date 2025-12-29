@@ -1,34 +1,41 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-export default function Login() {
+export default function Login({ onLoginSuccess }: { onLoginSuccess: () => void }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isRegister, setIsRegister] = useState(false); // สลับโหมด Login/Register
+  const [isRegister, setIsRegister] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    if (!username || !password) return alert('กรุณากรอกข้อมูลให้ครบ');
+    
+    setLoading(true);
     try {
-      // ถ้าเป็นโหมดสมัคร ให้ยิงไป /users, ถ้า Login ยิงไป /auth/login
-      const url = isRegister 
-        ? 'http://localhost:3000/users' 
-        : 'http://localhost:3000/auth/login';
-        
+      const BASE_URL = 'http://localhost:3003';
+      const url = isRegister ? `${BASE_URL}/users` : `${BASE_URL}/auth/login`;
+      
       const payload = isRegister 
-        ? { username, password, email: `${username}@test.com` } // สมมติ email ให้เลยง่ายๆ
+        ? { username, password, email: `${username}@test.com`, role: 'USER' }
         : { username, password };
 
-      const response = await axios.post(url, payload);
+      const { data } = await axios.post(url, payload);
 
       if (isRegister) {
-        alert('✅ สมัครสมาชิกสำเร็จ! กรุณา Login');
-        setIsRegister(false); // กลับไปหน้า Login
+        alert('✅ สมัครสมาชิกสำเร็จ! ระบบจะสลับไปหน้า Login');
+        setIsRegister(false);
       } else {
-        alert('🎉 Login สำเร็จ! Token: ' + response.data.access_token);
-        console.log(response.data);
+        // เก็บ Token (ถ้า Backend ส่งมา)
+        if (data.access_token) localStorage.setItem('token', data.access_token);
+        onLoginSuccess(); 
       }
-    } catch (error) {
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'เกิดข้อผิดพลาด';
+      // ถ้า Error 23505 หรือ Duplicate จะโชว์แจ้งเตือนที่เข้าใจง่าย
+      alert(`❌ ${isRegister ? 'สมัครสมาชิกไม่สำเร็จ' : 'Login ไม่สำเร็จ'}: ${msg}`);
       console.error(error);
-      alert('❌ ทำรายการไม่สำเร็จ: ' + (isRegister ? 'ชื่อซ้ำหรือข้อมูลผิด' : 'ชื่อหรือรหัสผ่านผิด'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,28 +46,35 @@ export default function Login() {
       </h2>
       
       <input
-        className="block w-full p-3 border mb-3 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="block w-full p-3 border mb-3 rounded focus:ring-2 focus:ring-blue-400"
         placeholder="Username"
+        value={username}
         onChange={(e) => setUsername(e.target.value)}
       />
       <input
         type="password"
-        className="block w-full p-3 border mb-6 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+        className="block w-full p-3 border mb-6 rounded focus:ring-2 focus:ring-blue-400"
         placeholder="Password"
+        value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
 
       <button
+        disabled={loading}
         onClick={handleSubmit}
-        className={`w-full text-white p-3 rounded font-bold transition duration-200 ${
-          isRegister ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'
+        className={`w-full text-white p-3 rounded font-bold transition ${
+          loading ? 'bg-gray-400' : isRegister ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'
         }`}
       >
-        {isRegister ? 'ยืนยันการสมัคร' : 'Login'}
+        {loading ? 'กำลังประมวลผล...' : isRegister ? 'ยืนยันการสมัคร' : 'Login'}
       </button>
 
       <p className="mt-4 text-center text-sm text-gray-600 cursor-pointer hover:underline"
-         onClick={() => setIsRegister(!isRegister)}>
+         onClick={() => {
+           setIsRegister(!isRegister);
+           setUsername(''); // ล้างค่าเมื่อสลับโหมด
+           setPassword('');
+         }}>
         {isRegister ? 'มีบัญชีแล้ว? กลับไป Login' : 'ยังไม่มีบัญชี? สมัครสมาชิก'}
       </p>
     </div>
