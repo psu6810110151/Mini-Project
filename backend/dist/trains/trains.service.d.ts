@@ -1,9 +1,11 @@
-import { CreateTrainDto } from './dto/create-train.dto';
-import { UpdateTrainDto } from './dto/update-train.dto';
+import { Repository } from 'typeorm';
+import { Train } from './entities/train.entity';
 export declare class TrainsService {
-    create(createTrainDto: CreateTrainDto): string;
-    findAll(): string;
-    findOne(id: number): string;
-    update(id: number, updateTrainDto: UpdateTrainDto): string;
-    remove(id: number): string;
+    private trainsRepository;
+    constructor(trainsRepository: Repository<Train>);
+    create(createTrainDto: any): Promise<any>;
+    findAll(): Promise<Train[]>;
+    findOne(id: number): Promise<Train | null>;
+    update(id: number, updateTrainDto: any): Promise<Train | null>;
+    remove(id: number): Promise<import("typeorm").DeleteResult>;
 }

@@ -1,4 +1,3 @@
-// ใน backend/src/schedules/schedules.service.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,33 +8,37 @@ export class SchedulesService {
   constructor(
     @InjectRepository(Schedule)
     private schedulesRepository: Repository<Schedule>,
-  ) { }
+  ) {}
 
+  // 1. ฟังก์ชันสร้างตารางเดินรถ (แก้ปัญหา 500 Error ก่อนหน้านี้)
   async create(createScheduleDto: any) {
-    // ใช้ save เพื่อให้ TypeORM จัดการเรื่องความสัมพันธ์ ID ให้อัตโนมัติ
-    const newSchedule = this.schedulesRepository.create(createScheduleDto);
-    return await this.schedulesRepository.save(newSchedule);
+    return await this.schedulesRepository.save(createScheduleDto);
   }
 
-  findAll() {
-    // เพิ่ม relations เพื่อให้ดึงข้อมูลรถไฟและสถานีออกมาด้วย
-    return this.schedulesRepository.find({
-      relations: ['train', 'origin', 'destination']
+  // 2. ฟังก์ชันดึงข้อมูลทั้งหมดพร้อมความสัมพันธ์ (ใช้แสดงผลหน้า Search)
+  async findAll() {
+    return await this.schedulesRepository.find({
+      relations: ['train', 'origin', 'destination'],
     });
   }
 
+  // 3. ฟังก์ชันดึงข้อมูลทีละรายการ (แก้ Error TS2339: findOne)
   async findOne(id: number) {
-    return await this.schedulesRepository.findOneBy({ id } as any);
+    return await this.schedulesRepository.findOne({
+      where: { id },
+      relations: ['train', 'origin', 'destination'],
+    });
   }
 
+  // 4. ฟังก์ชันอัปเดตข้อมูล (แก้ Error TS2339: update)
   async update(id: number, updateScheduleDto: any) {
     await this.schedulesRepository.update(id, updateScheduleDto);
     return this.findOne(id);
   }
 
-  // ปรับ remove ให้ใช้ .delete(id) จะง่ายและเร็วกว่า ไม่ต้องหาตัวแปรมาพัก
+  // 5. ฟังก์ชันลบข้อมูล (แก้ Error TS2339: remove)
   async remove(id: number) {
-    return await this.schedulesRepository.delete(id);
+    const result = await this.schedulesRepository.delete(id);
+    return result;
   }
-
 }

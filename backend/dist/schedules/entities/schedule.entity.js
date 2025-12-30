@@ -15,12 +15,12 @@ const train_entity_1 = require("../../trains/entities/train.entity");
 const station_entity_1 = require("../../stations/entities/station.entity");
 let Schedule = class Schedule {
     id;
+    departure_time;
+    arrival_time;
+    price;
     train;
     origin;
     destination;
-    startTime;
-    endTime;
-    price;
 };
 exports.Schedule = Schedule;
 __decorate([
@@ -28,29 +28,29 @@ __decorate([
     __metadata("design:type", Number)
 ], Schedule.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => train_entity_1.Train, { eager: true }),
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Schedule.prototype, "departure_time", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], Schedule.prototype, "arrival_time", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", Number)
+], Schedule.prototype, "price", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => train_entity_1.Train, (train) => train.id, { eager: true }),
     __metadata("design:type", train_entity_1.Train)
 ], Schedule.prototype, "train", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => station_entity_1.Station, { eager: true }),
+    (0, typeorm_1.ManyToOne)(() => station_entity_1.Station, (station) => station.id, { eager: true }),
     __metadata("design:type", station_entity_1.Station)
 ], Schedule.prototype, "origin", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => station_entity_1.Station, { eager: true }),
+    (0, typeorm_1.ManyToOne)(() => station_entity_1.Station, (station) => station.id, { eager: true }),
     __metadata("design:type", station_entity_1.Station)
 ], Schedule.prototype, "destination", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], Schedule.prototype, "startTime", void 0);
-__decorate([
-    (0, typeorm_1.Column)(),
-    __metadata("design:type", String)
-], Schedule.prototype, "endTime", void 0);
-__decorate([
-    (0, typeorm_1.Column)('decimal'),
-    __metadata("design:type", Number)
-], Schedule.prototype, "price", void 0);
 exports.Schedule = Schedule = __decorate([
     (0, typeorm_1.Entity)()
 ], Schedule);

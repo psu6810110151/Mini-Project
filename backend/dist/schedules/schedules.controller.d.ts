@@ -4,7 +4,7 @@ import { UpdateScheduleDto } from './dto/update-schedule.dto';
 export declare class SchedulesController {
     private readonly schedulesService;
     constructor(schedulesService: SchedulesService);
-    create(createScheduleDto: CreateScheduleDto): Promise<import("./entities/schedule.entity").Schedule[]>;
+    create(createScheduleDto: CreateScheduleDto): Promise<any>;
     findAll(): Promise<import("./entities/schedule.entity").Schedule[]>;
     findOne(id: string): Promise<import("./entities/schedule.entity").Schedule | null>;
     update(id: string, updateScheduleDto: UpdateScheduleDto): Promise<import("./entities/schedule.entity").Schedule | null>;

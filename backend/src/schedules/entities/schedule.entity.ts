@@ -7,20 +7,27 @@ export class Schedule {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @ManyToOne(() => Train, { eager: true })
-    train: Train; // เชื่อมกับรถไฟ
+    // ในไฟล์ schedule.entity.ts
 
-    @ManyToOne(() => Station, { eager: true })
-    origin: Station; // สถานีต้นทาง
+    @Column({ nullable: true }) // 👈 เพิ่มตรงนี้เพื่อให้ DB ยอมรับค่าว่างได้
+    departure_time: string;
 
-    @ManyToOne(() => Station, { eager: true })
-    destination: Station; // สถานีปลายทาง
-    @Column()
-    startTime: string; // เปลี่ยนจาก departure_time เป็น startTime
+    @Column({ nullable: true }) // 👈 ทำเหมือนกันที่ arrival_time และ price เพื่อป้องกัน Error อื่น
+    arrival_time: string;
 
-    @Column()
-    endTime: string;
+    @Column({ nullable: true })
+    price: number;
 
-    @Column('decimal')
-    price: number; // ราคาตั๋ว
+    // เชื่อมกับรถไฟ
+    @ManyToOne(() => Train, (train) => train.id, { eager: true })
+    train: Train;
+
+    // เชื่อมกับสถานีต้นทาง
+    @ManyToOne(() => Station, (station) => station.id, { eager: true })
+    origin: Station;
+
+    // เชื่อมกับสถานีปลายทาง
+    @ManyToOne(() => Station, (station) => station.id, { eager: true })
+    destination: Station;
+
 }

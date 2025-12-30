@@ -23,23 +23,26 @@ let SchedulesService = class SchedulesService {
         this.schedulesRepository = schedulesRepository;
     }
     async create(createScheduleDto) {
-        const newSchedule = this.schedulesRepository.create(createScheduleDto);
-        return await this.schedulesRepository.save(newSchedule);
+        return await this.schedulesRepository.save(createScheduleDto);
     }
-    findAll() {
-        return this.schedulesRepository.find({
-            relations: ['train', 'origin', 'destination']
+    async findAll() {
+        return await this.schedulesRepository.find({
+            relations: ['train', 'origin', 'destination'],
         });
     }
     async findOne(id) {
-        return await this.schedulesRepository.findOneBy({ id });
+        return await this.schedulesRepository.findOne({
+            where: { id },
+            relations: ['train', 'origin', 'destination'],
+        });
     }
     async update(id, updateScheduleDto) {
         await this.schedulesRepository.update(id, updateScheduleDto);
         return this.findOne(id);
     }
     async remove(id) {
-        return await this.schedulesRepository.delete(id);
+        const result = await this.schedulesRepository.delete(id);
+        return result;
     }
 };
 exports.SchedulesService = SchedulesService;
