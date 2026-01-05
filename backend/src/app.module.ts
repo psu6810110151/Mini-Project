@@ -1,32 +1,20 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
-import { User } from './entities/user.entity';
-import { Trip } from './entities/trip.entity';
-import { Booking } from './entities/booking.entity';
-import { Ticket } from './entities/ticket.entity';
-import { AuthModule } from './auth/auth.module';
-import { AdminController } from './admin/admin.controller';
-import { TripsModule } from './trips/trips.module';
-import { BookingsModule } from './bookings/bookings.module';
+import { User, Station, Schedule, Booking } from './entities';
+import { AppController } from './app.controller';
+import { SeedService } from './seed.service';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5435,
-      username: 'admin',     
-      password: 'password123',
-      database: 'train_ticket',
-      entities: [User, Trip, Booking, Ticket], 
-      synchronize: true, 
+      type: 'sqlite',          // 👈 เปลี่ยนชนิดเป็น sqlite
+      database: 'database.sqlite', // 👈 ชื่อไฟล์ที่จะเก็บข้อมูล (มันจะสร้างให้เอง)
+      entities: [User, Station, Schedule, Booking],
+      synchronize: true,       // 👈 สร้างตารางให้อัตโนมัติ
     }),
-    AuthModule,
-    TripsModule,
-    BookingsModule,
+    TypeOrmModule.forFeature([User, Station, Schedule, Booking]),
   ],
-  controllers: [AdminController],
+  controllers: [AppController],
+  providers: [SeedService],
 })
 export class AppModule {}

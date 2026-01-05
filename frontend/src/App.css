@@ -1,42 +1,155 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap');
+
+:root {
+  --srt-gold: #bfa15f; /* สีทองแบบการรถไฟ */
+  --srt-gold-dark: #967d45;
+  --srt-red: #d9534f;
+  --bg-gray: #f8f9fa;
+  --text-main: #333;
+  --text-light: #777;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+* { box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
+body { margin: 0; background-color: var(--bg-gray); color: var(--text-main); }
+
+/* --- Navbar (แถบเมนูด้านบน) --- */
+.srt-navbar {
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  position: sticky; top: 0; z-index: 100;
+  padding: 0 20px; height: 70px;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+.navbar-inner {
+  max-width: 1200px; margin: 0 auto; height: 100%;
+  display: flex; justify-content: space-between; align-items: center;
 }
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.logo-area { display: flex; align-items: center; cursor: pointer; gap: 10px; }
+.logo-img { height: 50px; } /* ใส่โลโก้จริงถ้ามี */
+.logo-text h1 { margin: 0; font-size: 1.1rem; color: var(--srt-gold-dark); font-weight: bold; }
+.logo-text p { margin: 0; font-size: 0.7rem; color: #999; letter-spacing: 1px; }
+
+.menu-list { display: flex; gap: 20px; }
+.menu-item { background: none; border: none; font-size: 0.95rem; cursor: pointer; color: #555; padding: 5px 0; }
+.menu-item:hover, .menu-item.active { color: var(--srt-gold-dark); font-weight: bold; }
+
+.user-zone { display: flex; align-items: center; gap: 15px; font-size: 0.9rem; }
+.user-zone span { color: var(--srt-gold-dark); font-weight: bold; }
+
+/* --- Stepper (แถบขั้นตอน 1-2-3-4) --- */
+.stepper-container {
+  background: white; padding: 20px 0; border-bottom: 1px solid #eee; margin-bottom: 20px;
+}
+.stepper {
+  max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; position: relative;
+}
+.step-item { text-align: center; position: relative; z-index: 2; width: 100px; }
+.step-icon {
+  width: 40px; height: 40px; background: #eee; color: #999;
+  border-radius: 50%; margin: 0 auto 5px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem;
+}
+.step-text { font-size: 0.85rem; color: #999; }
+
+.step-item.active .step-icon { background: var(--srt-gold); color: white; }
+.step-item.active .step-text { color: var(--srt-gold-dark); font-weight: bold; }
+/* เส้นเชื่อม */
+.stepper::before {
+  content: ''; position: absolute; top: 20px; left: 50px; right: 50px;
+  height: 2px; background: #eee; z-index: 1;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* --- Hero & Search (หน้าแรก) --- */
+.hero-banner {
+  height: 350px;
+  background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1561582200-a9d060e227d8?q=80&w=2070&auto=format&fit=crop') center/cover;
+  position: relative;
+  display: flex; justify-content: center; align-items: flex-end; /* กล่องค้นหาอยู่ด้านล่าง */
+  padding-bottom: 40px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.search-card {
+  background: white; width: 90%; max-width: 900px;
+  border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  overflow: hidden; padding: 30px;
 }
+.tab-header { border-bottom: 2px solid #eee; margin-bottom: 20px; }
+.tab-btn {
+  padding: 10px 20px; border: none; background: none; font-size: 1rem; cursor: pointer; color: #666;
+  border-bottom: 3px solid transparent;
+}
+.tab-btn.active { color: var(--srt-gold); border-color: var(--srt-gold); font-weight: bold; }
 
-.card {
-  padding: 2em;
+.search-form { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end; }
+.input-group label { display: block; font-size: 0.85rem; color: #888; margin-bottom: 5px; }
+.input-group select, .input-group input {
+  width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; outline: none;
 }
+.input-group select:focus, .input-group input:focus { border-color: var(--srt-gold); }
 
-.read-the-docs {
-  color: #888;
+.btn-search {
+  background: var(--srt-gold); color: white; border: none; padding: 10px 30px;
+  border-radius: 4px; font-size: 1rem; cursor: pointer; height: 42px;
 }
+.btn-search:hover { background: var(--srt-gold-dark); }
+
+/* --- Train List (รายการรถไฟ) --- */
+.container { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+.train-card {
+  background: white; border: 1px solid #eee; border-radius: 8px; padding: 20px;
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02); transition: transform 0.2s;
+}
+.train-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+.train-left { display: flex; gap: 20px; align-items: center; }
+.train-badge {
+  background: var(--srt-gold); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;
+}
+.train-route h3 { margin: 0; font-size: 1.1rem; color: #444; }
+.train-time { font-size: 0.9rem; color: #777; margin-top: 5px; }
+.train-price { font-size: 1.3rem; color: var(--srt-gold-dark); font-weight: bold; }
+
+.btn-select {
+  background: white; border: 1px solid var(--srt-gold); color: var(--srt-gold);
+  padding: 8px 20px; border-radius: 4px; cursor: pointer; transition: 0.2s;
+}
+.btn-select:hover { background: var(--srt-gold); color: white; }
+
+/* --- Seat Selection --- */
+.seat-section { text-align: center; background: white; padding: 30px; border-radius: 8px; }
+.seat-grid {
+  display: grid; grid-template-columns: repeat(4, 60px); gap: 15px; justify-content: center; margin: 30px 0;
+}
+.seat-btn {
+  height: 60px; border: 1px solid #ddd; border-radius: 8px; background: white;
+  cursor: pointer; font-size: 1rem; color: #555;
+}
+.seat-btn:hover { border-color: var(--srt-gold); }
+.seat-btn.selected { background: var(--srt-gold); color: white; border: none; }
+.seat-btn.taken { background: #eee; color: #ccc; border: none; cursor: not-allowed; }
+
+/* --- My Bookings (ประวัติ) --- */
+.history-card {
+  background: white; border-radius: 8px; border: 1px solid #eee; overflow: hidden; margin-bottom: 20px;
+}
+.history-header {
+  background: #fdfdfd; padding: 15px 20px; border-bottom: 1px solid #eee;
+  display: flex; justify-content: space-between; color: #666; font-size: 0.9rem;
+}
+.history-body { padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+.h-info h4 { margin: 0 0 5px; color: var(--srt-gold-dark); }
+.h-info p { margin: 0; font-size: 0.9rem; color: #555; }
+.btn-cancel {
+  background: white; border: 1px solid #ffccc7; color: #ff4d4f; padding: 6px 15px;
+  border-radius: 4px; cursor: pointer; font-size: 0.85rem;
+}
+.btn-cancel:hover { background: #fff1f0; }
+
+/* --- Modal --- */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);
+  display: flex; justify-content: center; align-items: center; z-index: 200;
+}
+.modal-box { background: white; width: 400px; padding: 30px; border-radius: 8px; position: relative; }
+.modal-title { text-align: center; color: var(--srt-gold-dark); margin-bottom: 20px; }
+.form-input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; }
+.btn-full { width: 100%; padding: 12px; background: var(--srt-gold); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
