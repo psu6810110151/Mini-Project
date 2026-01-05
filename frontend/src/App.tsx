@@ -1,27 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { FaBed, FaSnowflake, FaFan, FaArrowUp, FaArrowDown, FaToilet, FaDoorOpen, FaUsers, FaChartLine, FaTicketAlt, FaTrash } from 'react-icons/fa';
-
-// ----------------------------------------------------
-// 🔥 Import รูปภาพ
-// ----------------------------------------------------
-import bgHeadImage from './bg-head.png'; 
+import { 
+  FaBed, FaSnowflake, FaFan, FaArrowUp, FaArrowDown, 
+  FaChartLine, FaTicketAlt, FaTrash, FaTrain, FaPlus,
+  FaToilet, FaDoorOpen, FaWalking 
+} from 'react-icons/fa';
 
 const FONT_URL = "https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap";
-const TRAIN_BG_IMAGE = bgHeadImage; 
 
-// --- Theme Colors ---
+import bgTrainImage from './bg-head.png'; 
+
+const TRAIN_BG_IMAGE = bgTrainImage; 
+
 const THEME = {
-  primary: '#B28237', 
+  primary: '#B28237', // สีทอง รฟท.
   secondary: '#F5F5F5',
   textMain: '#444',
   seatAvailable: '#fff', 
   seatTaken: '#e0e0e0',
   seatSelected: '#B28237', 
   seatBorder: '#B28237',
-  adminSidebar: '#2c3e50',
-  success: '#198754',
-  danger: '#dc3545'
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
@@ -30,37 +28,88 @@ const styles: { [key: string]: React.CSSProperties } = {
   logo: { fontSize: '28px', fontWeight: 'bold', color: THEME.primary, cursor: 'pointer', letterSpacing: '1px' },
   navMenu: { display: 'flex', gap: '25px', color: '#666', fontWeight: 500, cursor: 'pointer', fontSize: '16px' },
   hero: { 
-    backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('${TRAIN_BG_IMAGE}')`, 
+    // ใช้รูปภาพเป็นพื้นหลัง
+    backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('${TRAIN_BG_IMAGE}')`, 
     backgroundSize: 'cover', backgroundPosition: 'center', 
     padding: '100px 20px', textAlign: 'center' as 'text-align', minHeight: '500px',
     display: 'flex', flexDirection: 'column' as 'column', justifyContent: 'center', alignItems: 'center', color: '#fff'
   },
   heroTitle: { fontSize: '3.5rem', fontWeight: 'bold', textShadow: '0px 4px 15px rgba(0,0,0,0.5)', marginBottom: '10px' },
-  heroSubtitle: { fontSize: '1.5rem', fontWeight: 300, marginBottom: '40px', opacity: 0.9 },
+  heroSubtitle: { fontSize: '1.2rem', textShadow: '0px 2px 10px rgba(0,0,0,0.5)' },
   searchWidget: { backgroundColor: '#fff', borderRadius: '15px', padding: '30px', width: '100%', maxWidth: '1000px', boxShadow: '0 20px 50px rgba(0,0,0,0.15)', marginTop: '-60px' },
   btnGold: { backgroundColor: THEME.primary, color: '#fff', border: 'none', borderRadius: '8px', padding: '12px 20px', fontWeight: 'bold', width: '100%', transition: '0.3s', fontSize: '16px', boxShadow: '0 4px 6px rgba(178, 130, 55, 0.3)' },
   seatBtn: { width: '45px', height: '45px', border: `1px solid ${THEME.seatBorder}`, borderRadius: '8px', margin: '4px', fontSize: '14px', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer', transition: '0.2s' },
-  trainCarriage: { backgroundColor: '#fff', border: '1px solid #ddd', borderRadius: '20px', padding: '30px', position: 'relative' as 'relative', minWidth: '340px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' },
-  adminCard: { backgroundColor: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '15px' }
+  trainCarriage: { backgroundColor: '#fff', border: '1px solid #ddd', borderRadius: '20px', padding: '20px', position: 'relative' as 'relative', minWidth: '340px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' },
 };
 
-// --- Data ---
+// ----------------------------------------------------
+// 🔥 DATA: สถานีรถไฟจริง (Major Stations All Regions)
+// ----------------------------------------------------
 const STATIONS = [
-  { id: 1, name: 'กรุงเทพอภิวัฒน์ (Bang Sue)', km: 0 },
-  { id: 2, name: 'ดอนเมือง', km: 22 },
-  { id: 3, name: 'อยุธยา', km: 71 },
-  { id: 4, name: 'ลพบุรี', km: 133 },
-  { id: 5, name: 'นครสวรรค์', km: 246 },
-  { id: 6, name: 'พิษณุโลก', km: 389 },
-  { id: 7, name: 'อุตรดิตถ์', km: 485 },
-  { id: 8, name: 'เชียงใหม่', km: 751 },
+  // --- ส่วนกลาง ---
+  { id: 1, name: 'กรุงเทพอภิวัฒน์ (Bang Sue)', km: 0, region: 'Central' },
+  { id: 2, name: 'ดอนเมือง (Don Mueang)', km: 22, region: 'Central' },
+  { id: 3, name: 'รังสิต (Rangsit)', km: 30, region: 'Central' },
+  { id: 5, name: 'อยุธยา (Ayutthaya)', km: 71, region: 'Central' },
+  { id: 6, name: 'แก่งคอย (Kaeng Khoi)', km: 125, region: 'Central' },
+
+  // --- สายเหนือ (Northern Line) ---
+  { id: 101, name: 'ลพบุรี (Lop Buri)', km: 133, region: 'North' },
+  { id: 102, name: 'นครสวรรค์ (Nakhon Sawan)', km: 246, region: 'North' },
+  { id: 103, name: 'พิจิตร (Phichit)', km: 347, region: 'North' },
+  { id: 104, name: 'พิษณุโลก (Phitsanulok)', km: 389, region: 'North' },
+  { id: 105, name: 'อุตรดิตถ์ (Uttaradit)', km: 485, region: 'North' },
+  { id: 106, name: 'ศิลาอาสน์ (Sila At)', km: 487, region: 'North' },
+  { id: 107, name: 'เด่นชัย (Den Chai)', km: 529, region: 'North' },
+  { id: 108, name: 'นครลำปาง (Nakhon Lampang)', km: 642, region: 'North' },
+  { id: 109, name: 'ขุนตาน (Khun Tan)', km: 683, region: 'North' },
+  { id: 110, name: 'ลำพูน (Lamphun)', km: 729, region: 'North' },
+  { id: 111, name: 'เชียงใหม่ (Chiang Mai)', km: 751, region: 'North' },
+
+  // --- สายตะวันออกเฉียงเหนือ (Northeastern Line) ---
+  { id: 201, name: 'สระบุรี (Saraburi)', km: 113, region: 'NE' },
+  { id: 202, name: 'ปากช่อง (Pak Chong)', km: 180, region: 'NE' },
+  { id: 203, name: 'นครราชสีมา (Nakhon Ratchasima)', km: 264, region: 'NE' },
+  { id: 204, name: 'บุรีรัมย์ (Buriram)', km: 376, region: 'NE' },
+  { id: 205, name: 'สุรินทร์ (Surin)', km: 420, region: 'NE' },
+  { id: 206, name: 'ศรีสะเกษ (Si Sa Ket)', km: 515, region: 'NE' },
+  { id: 207, name: 'อุบลราชธานี (Ubon Ratchathani)', km: 575, region: 'NE' },
+  { id: 208, name: 'ขอนแก่น (Khon Kaen)', km: 450, region: 'NE' },
+  { id: 209, name: 'อุดรธานี (Udon Thani)', km: 569, region: 'NE' },
+  { id: 210, name: 'หนองคาย (Nong Khai)', km: 621, region: 'NE' },
+
+  // --- สายใต้ (Southern Line) ---
+  { id: 301, name: 'นครปฐม (Nakhon Pathom)', km: 64, region: 'South' },
+  { id: 302, name: 'ราชบุรี (Ratchaburi)', km: 117, region: 'South' },
+  { id: 303, name: 'เพชรบุรี (Phetchaburi)', km: 167, region: 'South' },
+  { id: 304, name: 'หัวหิน (Hua Hin)', km: 229, region: 'South' },
+  { id: 305, name: 'ประจวบคีรีขันธ์ (Prachuap Khiri Khan)', km: 318, region: 'South' },
+  { id: 306, name: 'ชุมพร (Chumphon)', km: 485, region: 'South' },
+  { id: 307, name: 'สุราษฎร์ธานี (Surat Thani)', km: 651, region: 'South' },
+  { id: 308, name: 'ชุมทางทุ่งสง (Thung Song)', km: 773, region: 'South' },
+  { id: 309, name: 'นครศรีธรรมราช (Nakhon Si Thammarat)', km: 832, region: 'South' },
+  { id: 310, name: 'พัทลุง (Phatthalung)', km: 862, region: 'South' },
+  { id: 311, name: 'หาดใหญ่ (Hat Yai)', km: 945, region: 'South' },
+  { id: 312, name: 'ยะลา (Yala)', km: 1055, region: 'South' },
+  { id: 313, name: 'สุไหงโก-ลก (Sungai Kolok)', km: 1159, region: 'South' },
+
+    // --- สายตะวันออก (Eastern Line) ---
+  { id: 401, name: 'ฉะเชิงเทรา (Chachoengsao)', km: 61, region: 'East' },
+  { id: 402, name: 'ปราจีนบุรี (Prachin Buri)', km: 122, region: 'East' },
+  { id: 403, name: 'พัทยา (Pattaya)', km: 155, region: 'East' },
+  { id: 404, name: 'จุกเสม็ด/สัตหีบ (Chuk Samet)', km: 184, region: 'East' },
+  { id: 405, name: 'อรัญประเทศ (Aranyaprathet)', km: 255, region: 'East' },
 ];
 
-const TRAIN_TYPES = [
+const DEFAULT_TRAINS = [
     { id: 'EXP_51', name: 'ด่วน 51 (Express)', time: '22:00', type: 'Sleep', basePrice: 0.8 },
     { id: 'SP_9', name: 'ด่วนพิเศษ 9 (Uttrawithi)', time: '18:10', type: 'Sleep_AC', basePrice: 1.5 },
     { id: 'SP_7', name: 'ด่วนพิเศษ 7 (Diesel)', time: '08:30', type: 'Seat_AC', basePrice: 1.2 },
-    { id: 'ORD_109', name: 'เร็ว 109 (Rapid)', time: '13:45', type: 'Fan', basePrice: 0.5 },
+    { id: 'SP_21', name: 'ด่วนพิเศษ 21 (Isan Pura)', time: '05:45', type: 'Sleep_AC', basePrice: 1.4 },
+    { id: 'RAP_135', name: 'เร็ว 135 (Rapid)', time: '06:40', type: 'Fan', basePrice: 0.6 },
+    { id: 'ORD_201', name: 'ธรรมดา 201 (Ordinary)', time: '09:25', type: 'Fan', basePrice: 0.4 },
+    { id: 'SP_31', name: 'ด่วนพิเศษ 31 (Thaksinarath)', time: '14:30', type: 'Sleep_AC', basePrice: 1.5 },
+    { id: 'SP_85', name: 'ด่วน 85 (Nakhon Si)', time: '19:30', type: 'Sleep', basePrice: 0.9 },
 ];
 
 const CLASS_OPTIONS = [
@@ -71,10 +120,12 @@ const CLASS_OPTIONS = [
     { id: '3_FAN', name: 'ชั้น 3 พัดลม', factor: 0.6, icon: <FaFan/> },
 ];
 
-// --- Helper ---
+// --- Helper Functions ---
 const loadState = (key: string, defaultValue: any) => {
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : defaultValue;
+    try {
+        const saved = localStorage.getItem(key);
+        return saved ? JSON.parse(saved) : defaultValue;
+    } catch { return defaultValue; }
 };
 
 export default function App() {
@@ -84,10 +135,11 @@ export default function App() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   
   const [registeredUsers, setRegisteredUsers] = useState<any[]>(() => 
-      loadState('coe_users', [{ username: 'admin', password: '123', role: 'admin' }, { username: 'user', password: '123', role: 'user' }])
+      loadState('coe_users', [{ username: 'admin', password: '123', role: 'admin' }, { username: 'test1', password: '123', role: 'user' }])
   );
   const [currentUser, setCurrentUser] = useState<any>(() => loadState('coe_current_user', null));
   const [bookings, setBookings] = useState<any[]>(() => loadState('coe_bookings', []));
+  const [trains, setTrains] = useState<any[]>(() => loadState('coe_trains', DEFAULT_TRAINS)); 
 
   const [authForm, setAuthForm] = useState({ username: '', password: '' });
   const [searchParams, setSearchParams] = useState({ origin: '', dest: '', date: '', passengers: 1 });
@@ -95,6 +147,9 @@ export default function App() {
   const [selectedTrain, setSelectedTrain] = useState<any>(null);
   const [takenSeats, setTakenSeats] = useState<number[]>([]);
   const [currentSelectedSeats, setCurrentSelectedSeats] = useState<number[]>([]);
+
+  // Admin Add Train State
+  const [newTrain, setNewTrain] = useState({ name: '', time: '', type: 'Fan', basePrice: 1.0 });
 
   // --- Effects ---
   useEffect(() => {
@@ -105,12 +160,13 @@ export default function App() {
 
   useEffect(() => { localStorage.setItem('coe_users', JSON.stringify(registeredUsers)); }, [registeredUsers]);
   useEffect(() => { localStorage.setItem('coe_bookings', JSON.stringify(bookings)); }, [bookings]);
+  useEffect(() => { localStorage.setItem('coe_trains', JSON.stringify(trains)); }, [trains]);
   useEffect(() => {
       if(currentUser) localStorage.setItem('coe_current_user', JSON.stringify(currentUser));
       else localStorage.removeItem('coe_current_user');
   }, [currentUser]);
 
-  // --- Functions ---
+  // --- Logic Functions ---
   const handleAuth = () => {
       if (!authForm.username || !authForm.password) return alert("กรุณากรอกข้อมูลให้ครบ");
       if (authMode === 'register') {
@@ -124,7 +180,6 @@ export default function App() {
           if (user) { 
               setCurrentUser({ username: user.username, role: user.role }); 
               setShowAuth(false); setAuthForm({ username: '', password: '' }); 
-              // ถ้าเป็น admin ให้เด้งไปหน้า admin ทันที
               if (user.role === 'admin') setPage('admin_dashboard');
           } else { 
               alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"); 
@@ -136,21 +191,42 @@ export default function App() {
 
   const handleSearch = () => {
     if(!searchParams.origin || !searchParams.dest || !searchParams.date) return alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+    if(searchParams.origin === searchParams.dest) return alert('ต้นทางและปลายทางต้องไม่เหมือนกัน');
+
     const results: any[] = [];
-    TRAIN_TYPES.forEach(train => {
+    
+    trains.forEach(train => {
         let availableClasses = CLASS_OPTIONS;
         if (train.type === 'Fan') availableClasses = CLASS_OPTIONS.filter(c => c.id.includes('FAN') || c.id === '2_AC_ST');
+        if (train.type === 'Seat_AC') availableClasses = CLASS_OPTIONS.filter(c => c.id.includes('AC') || c.id.includes('FAN'));
         if (train.type === 'Sleep_AC') availableClasses = CLASS_OPTIONS.filter(c => c.id.includes('AC'));
-        
+        if (train.type === 'Sleep') availableClasses = CLASS_OPTIONS; 
+
         availableClasses.forEach(cls => {
             const s1 = STATIONS.find(s => s.id === parseInt(searchParams.origin));
             const s2 = STATIONS.find(s => s.id === parseInt(searchParams.dest));
+            
             const dist = s1 && s2 ? Math.abs(s1.km - s2.km) : 0;
-            const price = Math.round((dist * 0.5 * train.basePrice * cls.factor)); 
-            if(dist > 0) results.push({ ...train, classInfo: cls, price: price, travelTime: '12 ชม.' });
+            
+            if(dist > 0) {
+                 const price = Math.round((dist * 0.5 * train.basePrice * cls.factor)) + 50; 
+                 const speed = (train.name.includes('ด่วน') || train.name.includes('Special')) ? 75 : 55;
+                 const totalMinutes = Math.round((dist / speed) * 60) + 20; 
+                 
+                 const hrs = Math.floor(totalMinutes / 60);
+                 const mins = totalMinutes % 60;
+                 const realTravelTime = hrs > 0 ? `${hrs} ชม. ${mins} น.` : `${mins} น.`;
+
+                 results.push({ 
+                     ...train, 
+                     classInfo: cls, 
+                     price: price, 
+                     travelTime: realTravelTime
+                 });
+            }
         });
     });
-    setSearchResults(results);
+    setSearchResults(results.sort((a,b) => a.time.localeCompare(b.time)));
   };
 
   const selectTicket = (item: any) => {
@@ -185,7 +261,21 @@ export default function App() {
       }
       if (confirm("ยืนยันการยกเลิกตั๋ว?")) {
           setBookings(bookings.map(b => b.id === booking.id ? { ...b, status: 'cancelled' } : b));
-          alert("ยกเลิกเรียบร้อยแล้ว");
+      }
+  };
+
+  const handleAddTrain = () => {
+      if(!newTrain.name || !newTrain.time) return alert("กรุณากรอกชื่อและเวลา");
+      const id = "TR_" + Math.random().toString(36).substr(2, 5).toUpperCase();
+      const trainToAdd = { ...newTrain, id: id };
+      setTrains([...trains, trainToAdd]);
+      setNewTrain({ name: '', time: '', type: 'Fan', basePrice: 1.0 });
+      alert("เพิ่มเที่ยวรถเรียบร้อย!");
+  };
+
+  const handleDeleteTrain = (id: string) => {
+      if(confirm("ต้องการลบเที่ยวรถนี้ใช่หรือไม่?")) {
+          setTrains(trains.filter(t => t.id !== id));
       }
   };
 
@@ -194,24 +284,36 @@ export default function App() {
   // --- Components ---
   const SeatMap = () => (
     <div className="d-flex flex-column align-items-center">
-        <div className="d-flex align-items-center gap-2 mb-3 text-secondary"><FaArrowUp/> <span>หัวขบวน</span></div>
+        <div className="d-flex align-items-center gap-2 mb-3 text-secondary"><FaArrowUp/> <span>หัวขบวน (Front)</span></div>
+        
         <div style={styles.trainCarriage}>
+           {/* Service Area Front */}
+           <div className="d-flex justify-content-between mb-4 pb-3 border-bottom text-secondary">
+               <div className="d-flex gap-2 align-items-center"><FaToilet size={20}/> <span>ห้องน้ำ</span></div>
+               <div className="d-flex gap-2 align-items-center"><FaDoorOpen size={20}/> <span>ทางขึ้น-ลง</span></div>
+           </div>
+
+           {/* Seats */}
            <div className="d-flex flex-column gap-2 align-items-center">
               {Array.from({length: 10}).map((_, row) => (
                   <div key={row} className="d-flex gap-4">
                       <div className="d-flex gap-1">{[1, 2].map(n => renderSeat(row, n))}</div>
-                      <div className="d-flex align-items-center justify-content-center" style={{width: '30px', color: '#ccc', fontSize: '10px'}}><span style={{writingMode: 'vertical-rl'}}>WALK</span></div>
+                      <div className="d-flex align-items-center justify-content-center" style={{width: '40px', color: '#ccc', fontSize: '10px'}}>
+                          <span style={{writingMode: 'vertical-rl', transform: 'rotate(180deg)'}}><FaWalking/> WALK</span>
+                      </div>
                       <div className="d-flex gap-1">{[3, 4].map(n => renderSeat(row, n))}</div>
                   </div>
               ))}
-              <div className="mt-4 pt-3 border-top w-100 d-flex justify-content-around align-items-center bg-light rounded p-2">
-                 <div className="d-flex flex-column align-items-center text-muted"><FaToilet size={20} className="mb-1"/><span style={{fontSize: '11px'}}>ห้องน้ำ</span></div>
-                 <div style={{width: '1px', height: '30px', backgroundColor: '#ddd'}}></div>
-                 <div className="d-flex flex-column align-items-center text-muted"><FaDoorOpen size={20} className="mb-1"/><span style={{fontSize: '11px'}}>ทางลง</span></div>
-              </div>
+           </div>
+
+            {/* Service Area Back */}
+           <div className="d-flex justify-content-between mt-4 pt-3 border-top text-secondary">
+               <div className="d-flex gap-2 align-items-center"><FaDoorOpen size={20}/> <span>ทางขึ้น-ลง</span></div>
+               <div className="d-flex gap-2 align-items-center"><span>ที่เก็บสัมภาระ</span></div>
            </div>
         </div>
-        <div className="d-flex align-items-center gap-2 mt-3 text-secondary"><FaArrowDown/> <span>ท้ายขบวน</span></div>
+        
+        <div className="d-flex align-items-center gap-2 mt-3 text-secondary"><FaArrowDown/> <span>ท้ายขบวน (Rear)</span></div>
     </div>
   );
 
@@ -227,85 +329,96 @@ export default function App() {
       );
   };
 
-  // --- Admin Dashboard Component ---
+  // --- Admin Dashboard ---
   const AdminDashboard = () => {
       const totalRevenue = bookings.filter(b => b.status === 'confirmed').reduce((sum, b) => sum + b.price, 0);
-      const totalBookings = bookings.length;
       const activeBookings = bookings.filter(b => b.status === 'confirmed').length;
 
       return (
           <div className="container mt-4 mb-5">
               <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h2 className="fw-bold" style={{color: THEME.primary}}>⚙️ Admin Dashboard (จัดการหลังบ้าน)</h2>
+                  <h2 className="fw-bold" style={{color: THEME.primary}}>⚙️ Admin Dashboard</h2>
                   <button className="btn btn-outline-secondary" onClick={() => setPage('home')}>กลับหน้าหลัก</button>
               </div>
 
-              {/* Stats Cards */}
               <div className="row g-4 mb-5">
                   <div className="col-md-4">
-                      <div style={styles.adminCard}>
+                      <div style={{...styles.trainCarriage, padding: '20px', display: 'flex', alignItems: 'center', gap: '15px'}}>
                           <div className="bg-warning bg-opacity-10 p-3 rounded-circle text-warning"><FaChartLine size={24}/></div>
                           <div><div className="text-muted small">ยอดขายรวม</div><h4 className="m-0 fw-bold">{totalRevenue.toLocaleString()} ฿</h4></div>
                       </div>
                   </div>
                   <div className="col-md-4">
-                      <div style={styles.adminCard}>
+                      <div style={{...styles.trainCarriage, padding: '20px', display: 'flex', alignItems: 'center', gap: '15px'}}>
                           <div className="bg-success bg-opacity-10 p-3 rounded-circle text-success"><FaTicketAlt size={24}/></div>
                           <div><div className="text-muted small">ตั๋วที่ขายแล้ว</div><h4 className="m-0 fw-bold">{activeBookings} ใบ</h4></div>
                       </div>
                   </div>
                   <div className="col-md-4">
-                      <div style={styles.adminCard}>
-                          <div className="bg-primary bg-opacity-10 p-3 rounded-circle text-primary"><FaUsers size={24}/></div>
-                          <div><div className="text-muted small">การจองทั้งหมด</div><h4 className="m-0 fw-bold">{totalBookings} รายการ</h4></div>
+                      <div style={{...styles.trainCarriage, padding: '20px', display: 'flex', alignItems: 'center', gap: '15px'}}>
+                          <div className="bg-primary bg-opacity-10 p-3 rounded-circle text-primary"><FaTrain size={24}/></div>
+                          <div><div className="text-muted small">จำนวนเที่ยวรถ</div><h4 className="m-0 fw-bold">{trains.length} ขบวน</h4></div>
                       </div>
                   </div>
               </div>
 
-              {/* Bookings Table */}
-              <div className="card border-0 shadow-sm" style={{borderRadius: '15px', overflow: 'hidden'}}>
-                  <div className="card-header bg-white py-3"><h5 className="m-0 fw-bold">รายการจองทั้งหมด (All Bookings)</h5></div>
-                  <div className="table-responsive">
-                      <table className="table table-hover mb-0 align-middle">
-                          <thead className="bg-light">
-                              <tr>
-                                  <th className="py-3 ps-4">PNR</th>
-                                  <th>User</th>
-                                  <th>ขบวน</th>
-                                  <th>วันที่/เวลา</th>
-                                  <th>ที่นั่ง</th>
-                                  <th>ราคา</th>
-                                  <th>สถานะ</th>
-                                  <th className="text-end pe-4">จัดการ</th>
-                              </tr>
-                          </thead>
-                          <tbody>
-                              {[...bookings].reverse().map((b, i) => (
-                                  <tr key={i}>
-                                      <td className="ps-4 fw-bold">{b.pnr}</td>
-                                      <td><span className="badge bg-light text-dark border">👤 {b.user}</span></td>
-                                      <td>{b.trainName}<br/><small className="text-muted">{b.className}</small></td>
-                                      <td>{b.date}<br/><small className="text-muted">{b.time}</small></td>
-                                      <td>{b.seats.join(', ')}</td>
-                                      <td className="fw-bold">{b.price} ฿</td>
-                                      <td>
-                                          {b.status === 'confirmed' 
-                                            ? <span className="badge bg-success bg-opacity-10 text-success">ชำระแล้ว</span>
-                                            : <span className="badge bg-secondary">ยกเลิก</span>
-                                          }
-                                      </td>
-                                      <td className="text-end pe-4">
-                                          {b.status === 'confirmed' && (
-                                              <button className="btn btn-sm btn-outline-danger" onClick={() => cancelTicket(b, true)}>
-                                                  <FaTrash/> ยกเลิก
-                                              </button>
-                                          )}
-                                      </td>
-                                  </tr>
-                              ))}
-                              {bookings.length === 0 && <tr><td colSpan={8} className="text-center py-5 text-muted">ยังไม่มีข้อมูลการจอง</td></tr>}
-                          </tbody>
-                      </table>
+              <div className="row g-4">
+                  <div className="col-lg-8">
+                      <div className="card border-0 shadow-sm mb-4" style={{borderRadius: '15px', overflow: 'hidden'}}>
+                          <div className="card-header bg-white py-3"><h5 className="m-0 fw-bold">รายการจองล่าสุด</h5></div>
+                          <div className="table-responsive">
+                              <table className="table table-hover mb-0 align-middle">
+                                  <thead className="bg-light text-secondary small">
+                                      <tr><th>PNR</th><th>User</th><th>ขบวน</th><th>ราคา</th><th>สถานะ</th><th>จัดการ</th></tr>
+                                  </thead>
+                                  <tbody>
+                                      {[...bookings].reverse().slice(0, 5).map((b, i) => (
+                                          <tr key={i}>
+                                              <td className="fw-bold">{b.pnr}</td>
+                                              <td>{b.user}</td>
+                                              <td>{b.trainName}<br/><small className="text-muted">{b.date} {b.time}</small></td>
+                                              <td className="fw-bold">{b.price} ฿</td>
+                                              <td><span className={`badge bg-${b.status === 'confirmed' ? 'success' : 'secondary'}`}>{b.status}</span></td>
+                                              <td>{b.status === 'confirmed' && <button className="btn btn-sm btn-outline-danger" onClick={() => cancelTicket(b, true)}><FaTrash/></button>}</td>
+                                          </tr>
+                                      ))}
+                                      {bookings.length === 0 && <tr><td colSpan={6} className="text-center py-4">ไม่มีข้อมูล</td></tr>}
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+                  </div>
+
+                  <div className="col-lg-4">
+                      <div className="card border-0 shadow-sm mb-4" style={{borderRadius: '15px'}}>
+                          <div className="card-header bg-primary text-white py-3"><h5 className="m-0 fw-bold"><FaPlus className="me-2"/> เพิ่มเที่ยวรถใหม่</h5></div>
+                          <div className="card-body">
+                              <div className="mb-2">
+                                  <label className="small text-muted">ชื่อขบวน</label>
+                                  <input className="form-control" value={newTrain.name} onChange={e => setNewTrain({...newTrain, name: e.target.value})} placeholder="เช่น ด่วน 85" />
+                              </div>
+                              <div className="mb-2">
+                                  <label className="small text-muted">เวลาออก</label>
+                                  <input type="time" className="form-control" value={newTrain.time} onChange={e => setNewTrain({...newTrain, time: e.target.value})} />
+                              </div>
+                              <div className="row g-2 mb-3">
+                                  <div className="col-6">
+                                      <label className="small text-muted">ประเภท</label>
+                                      <select className="form-select" value={newTrain.type} onChange={e => setNewTrain({...newTrain, type: e.target.value})}>
+                                          <option value="Fan">รถพัดลม</option>
+                                          <option value="Seat_AC">นั่งแอร์</option>
+                                          <option value="Sleep_AC">นอนแอร์</option>
+                                          <option value="Sleep">นอน/นั่ง</option>
+                                      </select>
+                                  </div>
+                                  <div className="col-6">
+                                      <label className="small text-muted">ตัวคูณราคา</label>
+                                      <input type="number" step="0.1" className="form-control" value={newTrain.basePrice} onChange={e => setNewTrain({...newTrain, basePrice: parseFloat(e.target.value)})} />
+                                  </div>
+                              </div>
+                              <button className="btn btn-primary w-100 fw-bold" onClick={handleAddTrain}>บันทึกเที่ยวรถ</button>
+                          </div>
+                      </div>
                   </div>
               </div>
           </div>
@@ -368,14 +481,14 @@ export default function App() {
                         <div style={styles.searchWidget}>
                             <div className="row g-3">
                                 <div className="col-md-3">
-                                    <label className="form-label fw-bold text-muted small">ต้นทาง</label>
+                                    <label className="form-label fw-bold text-muted small">ต้นทาง (Origin)</label>
                                     <select className="form-select border-0 bg-light py-3" value={searchParams.origin} onChange={e => setSearchParams({...searchParams, origin: e.target.value})}>
                                         <option value="">-- เลือกต้นทาง --</option>
                                         {STATIONS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="col-md-3">
-                                    <label className="form-label fw-bold text-muted small">ปลายทาง</label>
+                                    <label className="form-label fw-bold text-muted small">ปลายทาง (Destination)</label>
                                     <select className="form-select border-0 bg-light py-3" value={searchParams.dest} onChange={e => setSearchParams({...searchParams, dest: e.target.value})}>
                                         <option value="">-- เลือกปลายทาง --</option>
                                         {STATIONS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -458,7 +571,7 @@ export default function App() {
                         </div>
                         <div className="col-md-8 order-md-1">
                             <div className="bg-white p-4 rounded shadow-sm">
-                                <h4 className="text-center mb-4">เลือกที่นั่ง</h4>
+                                <h4 className="text-center mb-4">เลือกที่นั่ง (Carriage Layout)</h4>
                                 <SeatMap />
                             </div>
                         </div>
@@ -472,7 +585,6 @@ export default function App() {
                         <h3>🎟 ตั๋วของฉัน</h3>
                         <button className="btn btn-light" onClick={() => setPage('home')}>กลับหน้าหลัก</button>
                     </div>
-                    <div className="alert alert-info border-0 shadow-sm">💡 สามารถยกเลิกตั๋วก่อนเดินทาง 1 วัน</div>
                     {bookings.filter(b => b.user === currentUser.username).map((ticket, idx) => (
                         <div key={idx} className="card border-0 shadow-sm mb-3" style={{borderRadius: '15px', borderLeft: `8px solid ${ticket.status === 'cancelled' ? '#999' : THEME.primary}`}}>
                             <div className="card-body p-4">
@@ -483,6 +595,7 @@ export default function App() {
                                         <div className="d-flex flex-wrap gap-2">
                                             <span className="badge bg-light text-dark border">PNR: {ticket.pnr}</span>
                                             <span className="badge bg-success bg-opacity-10 text-success border border-success">ที่นั่ง: {ticket.seats.join(', ')}</span>
+                                            <span className="badge bg-info bg-opacity-10 text-info border border-info">{ticket.origin} ➝ {ticket.dest}</span>
                                         </div>
                                     </div>
                                     <div className="col-md-5 text-end">
@@ -497,6 +610,9 @@ export default function App() {
                             </div>
                         </div>
                     ))}
+                    {bookings.filter(b => b.user === currentUser.username).length === 0 && (
+                        <div className="text-center py-5 text-muted">ท่านยังไม่มีประวัติการจองตั๋ว</div>
+                    )}
                 </div>
             )}
         </>
