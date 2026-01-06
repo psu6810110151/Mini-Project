@@ -7,7 +7,6 @@ import {
 } from 'react-icons/fa';
 
 const FONT_URL = "https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap";
-
 import bgTrainImage from './bg-head.png'; 
 
 const TRAIN_BG_IMAGE = bgTrainImage; 
@@ -28,10 +27,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   logo: { fontSize: '28px', fontWeight: 'bold', color: THEME.primary, cursor: 'pointer', letterSpacing: '1px' },
   navMenu: { display: 'flex', gap: '25px', color: '#666', fontWeight: 500, cursor: 'pointer', fontSize: '16px' },
   hero: { 
-    // ใช้รูปภาพเป็นพื้นหลัง
     backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url('${TRAIN_BG_IMAGE}')`, 
     backgroundSize: 'cover', backgroundPosition: 'center', 
-    padding: '100px 20px', textAlign: 'center' as 'text-align', minHeight: '500px',
+    padding: '100px 20px', textAlign: 'center', minHeight: '500px',
     display: 'flex', flexDirection: 'column' as 'column', justifyContent: 'center', alignItems: 'center', color: '#fff'
   },
   heroTitle: { fontSize: '3.5rem', fontWeight: 'bold', textShadow: '0px 4px 15px rgba(0,0,0,0.5)', marginBottom: '10px' },
@@ -104,12 +102,6 @@ const STATIONS = [
 const DEFAULT_TRAINS = [
     { id: 'EXP_51', name: 'ด่วน 51 (Express)', time: '22:00', type: 'Sleep', basePrice: 0.8 },
     { id: 'SP_9', name: 'ด่วนพิเศษ 9 (Uttrawithi)', time: '18:10', type: 'Sleep_AC', basePrice: 1.5 },
-    { id: 'SP_7', name: 'ด่วนพิเศษ 7 (Diesel)', time: '08:30', type: 'Seat_AC', basePrice: 1.2 },
-    { id: 'SP_21', name: 'ด่วนพิเศษ 21 (Isan Pura)', time: '05:45', type: 'Sleep_AC', basePrice: 1.4 },
-    { id: 'RAP_135', name: 'เร็ว 135 (Rapid)', time: '06:40', type: 'Fan', basePrice: 0.6 },
-    { id: 'ORD_201', name: 'ธรรมดา 201 (Ordinary)', time: '09:25', type: 'Fan', basePrice: 0.4 },
-    { id: 'SP_31', name: 'ด่วนพิเศษ 31 (Thaksinarath)', time: '14:30', type: 'Sleep_AC', basePrice: 1.5 },
-    { id: 'SP_85', name: 'ด่วน 85 (Nakhon Si)', time: '19:30', type: 'Sleep', basePrice: 0.9 },
 ];
 
 const CLASS_OPTIONS = [
@@ -120,7 +112,6 @@ const CLASS_OPTIONS = [
     { id: '3_FAN', name: 'ชั้น 3 พัดลม', factor: 0.6, icon: <FaFan/> },
 ];
 
-// --- Helper Functions ---
 const loadState = (key: string, defaultValue: any) => {
     try {
         const saved = localStorage.getItem(key);
@@ -129,7 +120,6 @@ const loadState = (key: string, defaultValue: any) => {
 };
 
 export default function App() {
-  // --- State ---
   const [page, setPage] = useState('home');
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -148,10 +138,9 @@ export default function App() {
   const [takenSeats, setTakenSeats] = useState<number[]>([]);
   const [currentSelectedSeats, setCurrentSelectedSeats] = useState<number[]>([]);
 
-  // Admin Add Train State
-  const [newTrain, setNewTrain] = useState({ name: '', time: '', type: 'Fan', basePrice: 1.0 });
+  // ✅ State รับค่า origin และ dest
+  const [newTrain, setNewTrain] = useState({ name: '', time: '', type: 'Fan', basePrice: 1.0, origin: '', dest: '' });
 
-  // --- Effects ---
   useEffect(() => {
     const link = document.createElement('link');
     link.href = FONT_URL; link.rel = 'stylesheet';
@@ -166,7 +155,6 @@ export default function App() {
       else localStorage.removeItem('coe_current_user');
   }, [currentUser]);
 
-  // --- Logic Functions ---
   const handleAuth = () => {
       if (!authForm.username || !authForm.password) return alert("กรุณากรอกข้อมูลให้ครบ");
       if (authMode === 'register') {
@@ -264,36 +252,27 @@ export default function App() {
       }
   };
 
+  // ✅ แก้ไขฟังก์ชันบันทึก
   const handleAddTrain = () => {
       if(!newTrain.name || !newTrain.time) return alert("กรุณากรอกชื่อและเวลา");
+      
       const id = "TR_" + Math.random().toString(36).substr(2, 5).toUpperCase();
       const trainToAdd = { ...newTrain, id: id };
       setTrains([...trains, trainToAdd]);
-      setNewTrain({ name: '', time: '', type: 'Fan', basePrice: 1.0 });
+      setNewTrain({ name: '', time: '', type: 'Fan', basePrice: 1.0, origin: '', dest: '' });
       alert("เพิ่มเที่ยวรถเรียบร้อย!");
-  };
-
-  const handleDeleteTrain = (id: string) => {
-      if(confirm("ต้องการลบเที่ยวรถนี้ใช่หรือไม่?")) {
-          setTrains(trains.filter(t => t.id !== id));
-      }
   };
 
   const resetSystem = () => { if(confirm('⚠️ ล้างข้อมูลระบบ?')) { localStorage.clear(); window.location.reload(); } }
 
-  // --- Components ---
   const SeatMap = () => (
     <div className="d-flex flex-column align-items-center">
         <div className="d-flex align-items-center gap-2 mb-3 text-secondary"><FaArrowUp/> <span>หัวขบวน (Front)</span></div>
-        
         <div style={styles.trainCarriage}>
-           {/* Service Area Front */}
            <div className="d-flex justify-content-between mb-4 pb-3 border-bottom text-secondary">
                <div className="d-flex gap-2 align-items-center"><FaToilet size={20}/> <span>ห้องน้ำ</span></div>
                <div className="d-flex gap-2 align-items-center"><FaDoorOpen size={20}/> <span>ทางขึ้น-ลง</span></div>
            </div>
-
-           {/* Seats */}
            <div className="d-flex flex-column gap-2 align-items-center">
               {Array.from({length: 10}).map((_, row) => (
                   <div key={row} className="d-flex gap-4">
@@ -305,15 +284,7 @@ export default function App() {
                   </div>
               ))}
            </div>
-
-            {/* Service Area Back */}
-           <div className="d-flex justify-content-between mt-4 pt-3 border-top text-secondary">
-               <div className="d-flex gap-2 align-items-center"><FaDoorOpen size={20}/> <span>ทางขึ้น-ลง</span></div>
-               <div className="d-flex gap-2 align-items-center"><span>ที่เก็บสัมภาระ</span></div>
-           </div>
         </div>
-        
-        <div className="d-flex align-items-center gap-2 mt-3 text-secondary"><FaArrowDown/> <span>ท้ายขบวน (Rear)</span></div>
     </div>
   );
 
@@ -329,7 +300,7 @@ export default function App() {
       );
   };
 
-  // --- Admin Dashboard ---
+  // --- Admin Dashboard (Internal Component) ---
   const AdminDashboard = () => {
       const totalRevenue = bookings.filter(b => b.status === 'confirmed').reduce((sum, b) => sum + b.price, 0);
       const activeBookings = bookings.filter(b => b.status === 'confirmed').length;
@@ -397,6 +368,25 @@ export default function App() {
                                   <label className="small text-muted">ชื่อขบวน</label>
                                   <input className="form-control" value={newTrain.name} onChange={e => setNewTrain({...newTrain, name: e.target.value})} placeholder="เช่น ด่วน 85" />
                               </div>
+
+                              {/* ✅✅✅ Dropdown เลือกต้นทาง/ปลายทาง ✅✅✅ */}
+                              <div className="row g-2 mb-2">
+                                  <div className="col-6">
+                                      <label className="small text-muted">ต้นทาง</label>
+                                      <select className="form-select" value={newTrain.origin} onChange={e => setNewTrain({...newTrain, origin: e.target.value})}>
+                                          <option value="">เลือก</option>
+                                          {STATIONS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                      </select>
+                                  </div>
+                                  <div className="col-6">
+                                      <label className="small text-muted">ปลายทาง</label>
+                                      <select className="form-select" value={newTrain.dest} onChange={e => setNewTrain({...newTrain, dest: e.target.value})}>
+                                          <option value="">เลือก</option>
+                                          {STATIONS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                      </select>
+                                  </div>
+                              </div>
+
                               <div className="mb-2">
                                   <label className="small text-muted">เวลาออก</label>
                                   <input type="time" className="form-control" value={newTrain.time} onChange={e => setNewTrain({...newTrain, time: e.target.value})} />

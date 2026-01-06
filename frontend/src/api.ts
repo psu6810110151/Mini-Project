@@ -1,17 +1,31 @@
 import axios from 'axios';
 
-// ตั้งค่า URL หลักของ Backend (เช็ค Port ดีๆ นะครับ ของคุณคือ 3005)
+// ✅ เปลี่ยน URL เป็น Port 3000 (Default NestJS) หรือตามที่คุณรันจริง
+const API_URL = 'http://localhost:3005';
+
 const api = axios.create({
-  baseURL: 'http://localhost:3005', 
+  baseURL: API_URL,
 });
 
-// ฟังก์ชันสำหรับดึง Token มาแนบไปกับทุก Request (Interceptor)
+// Interceptor: แนบ Token ไปกับทุก Request
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token'); // เดี๋ยวเราจะเก็บ Token ไว้ในนี้
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    // ถ้ามีการใช้ Token จริงๆ ให้ดึงจาก localStorage.getItem('token')
+    // แต่ในโปรเจกต์นี้เราอาจจะไม่ได้ใช้ JWT เต็มรูปแบบใน Code ตัวอย่าง
+    // config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
+export const getStations = () => api.get('/stations');
+export const searchTrains = (originId: number, destId: number, includePast: boolean) => 
+  api.get(`/search?origin=${originId}&dest=${destId}&includePast=${includePast}`);
+
+// Admin: เพิ่มรถ
+export const addTrain = (data: any) => api.post('/trains', data);
+
+// Booking
+export const bookTicket = (data: any) => api.post('/book', data);
 
 export default api;

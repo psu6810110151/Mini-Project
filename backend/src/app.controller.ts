@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, Station, Schedule, Booking } from './entities';
 
-// --- ข้อมูลสถานี (รวมสายใต้ นครศรีฯ แล้ว) ---
+// --- ข้อมูลสถานี ---
 const REAL_STATIONS = [
   "กรุงเทพอภิวัฒน์ (Bang Sue)", "อยุธยา", "ลพบุรี", "นครสวรรค์", "พิจิตร", "พิษณุโลก", "อุตรดิตถ์", "เด่นชัย", "ลำปาง", "ลำพูน", "เชียงใหม่",
   "สระบุรี", "ปากช่อง", "นครราชสีมา", "บุรีรัมย์", "สุรินทร์", "ศรีสะเกษ", "อุบลราชธานี",
@@ -24,11 +24,11 @@ export class AppController implements OnModuleInit {
   // --- ระบบ Reset ข้อมูลอัตโนมัติเมื่อเริ่ม Server ---
   async onModuleInit() {
     const count = await this.stationRepo.count();
-    // ถ้าจำนวนสถานีไม่ตรง (เช่น เพิ่มสายใต้มาใหม่) ให้ล้างข้อมูลแล้วลงใหม่
+    // ถ้าสถานีไม่ครบ หรือต้องการรีเซ็ตข้อมูลใหม่
     if (count < REAL_STATIONS.length) {
       console.log('🚧 ตรวจพบข้อมูลใหม่! กำลังรีเซ็ตฐานข้อมูลสถานีและรอบรถไฟ...');
       try {
-        await this.bookingRepo.clear();  // ล้างการจองเก่า (ระวัง: ข้อมูลหายหมด)
+        await this.bookingRepo.clear();  // ล้างการจองเก่า
         await this.scheduleRepo.clear(); // ล้างรอบรถ
         await this.stationRepo.clear();  // ล้างสถานี
       } catch (e) { console.log('⚠️ Info: Database Init'); }
@@ -41,24 +41,26 @@ export class AppController implements OnModuleInit {
       }
       const getStation = (name: string) => stationMap.get(name);
 
-      // 2. ข้อมูลเที่ยวรถ (รวมสายใต้ Train 85)
+      // 2. ข้อมูลเที่ยวรถ (เพิ่ม type และ priceMultiplier)
       const schedules = [
-        { train: "ด่วนพิเศษ 9 (อุตราวิถี)", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "เชียงใหม่", time: "18:10", price: 1041 },
-        { train: "ด่วนพิเศษ 7", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "เชียงใหม่", time: "08:30", price: 641 },
-        { train: "ด่วน 51", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "เชียงใหม่", time: "22:00", price: 431 },
-        { train: "เร็ว 109", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "เชียงใหม่", time: "13:30", price: 231 },
-        { train: "ด่วนพิเศษ 23 (อีสานวัตนา)", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "อุบลราชธานี", time: "20:30", price: 950 },
-        { train: "ด่วน 71", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "อุบลราชธานี", time: "10:05", price: 400 },
-        { train: "ด่วนพิเศษ 25 (อีสานมรรคา)", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "หนองคาย", time: "20:00", price: 980 },
-        { train: "ด่วน 75", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "หนองคาย", time: "08:20", price: 450 },
-        { train: "ด่วนพิเศษ 31 (ทักษิณารัถย์)", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "หาดใหญ่", time: "14:30", price: 1100 },
-        { train: "ด่วนพิเศษ 43", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "สุราษฎร์ธานี", time: "08:05", price: 550 },
+        { train: "ด่วนพิเศษ 9 (อุตราวิถี)", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "เชียงใหม่", time: "18:10", price: 1041, type: "air", multi: 1.5 },
+        { train: "ด่วนพิเศษ 7", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "เชียงใหม่", time: "08:30", price: 641, type: "air", multi: 1.2 },
+        { train: "ด่วน 51", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "เชียงใหม่", time: "22:00", price: 431, type: "fan", multi: 1.0 },
+        { train: "เร็ว 109", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "เชียงใหม่", time: "13:30", price: 231, type: "fan", multi: 1.0 },
         
-        // --- สายใต้ที่ต้องการ ---
-        { train: "ด่วน 85", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "นครศรีธรรมราช", time: "19:30", price: 600 },
+        { train: "ด่วนพิเศษ 23 (อีสานวัตนา)", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "อุบลราชธานี", time: "20:30", price: 950, type: "air", multi: 1.5 },
+        { train: "ด่วน 71", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "อุบลราชธานี", time: "10:05", price: 400, type: "fan", multi: 1.0 },
         
-        { train: "นำเที่ยว 909", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "น้ำตก (กาญจนบุรี)", time: "06:30", price: 120 }, 
-        { train: "ธรรมดา 283", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "บ้านพลูตาหลวง", time: "06:55", price: 40 },
+        { train: "ด่วนพิเศษ 25 (อีสานมรรคา)", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "หนองคาย", time: "20:00", price: 980, type: "air", multi: 1.5 },
+        { train: "ด่วน 75", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "หนองคาย", time: "08:20", price: 450, type: "fan", multi: 1.0 },
+        
+        { train: "ด่วนพิเศษ 31 (ทักษิณารัถย์)", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "หาดใหญ่", time: "14:30", price: 1100, type: "air", multi: 1.5 },
+        { train: "ด่วนพิเศษ 43", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "สุราษฎร์ธานี", time: "08:05", price: 550, type: "air", multi: 1.2 },
+        
+        { train: "ด่วน 85", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "นครศรีธรรมราช", time: "19:30", price: 600, type: "fan", multi: 1.0 },
+        
+        { train: "นำเที่ยว 909", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "น้ำตก (กาญจนบุรี)", time: "06:30", price: 120, type: "fan", multi: 1.0 }, 
+        { train: "ธรรมดา 283", origin: "กรุงเทพอภิวัฒน์ (Bang Sue)", dest: "บ้านพลูตาหลวง", time: "06:55", price: 40, type: "fan", multi: 1.0 },
       ];
 
       for (const s of schedules) {
@@ -66,9 +68,17 @@ export class AppController implements OnModuleInit {
         const dest = getStation(s.dest);
         if (origin && dest) {
           // ขาไป
-          await this.scheduleRepo.save({ origin, destination: dest, trainName: s.train, price: s.price, startTime: s.time });
+          await this.scheduleRepo.save({ 
+            origin, 
+            destination: dest, 
+            trainName: s.train, 
+            price: s.price, 
+            startTime: s.time,
+            type: s.type, // ✅ เพิ่ม
+            priceMultiplier: s.multi // ✅ เพิ่ม
+          });
           
-          // ขากลับ (คำนวณเวลาคร่าวๆ +12 ชม.)
+          // ขากลับ (+12 ชม.)
           const [hr, min] = s.time.split(':').map(Number);
           const returnTime = `${(hr + 12) % 24}`.padStart(2,'0') + `:${min}`;
           await this.scheduleRepo.save({ 
@@ -76,7 +86,9 @@ export class AppController implements OnModuleInit {
             destination: origin, 
             trainName: s.train.replace('ด่วนพิเศษ', 'กลับ').replace('ด่วน', 'กลับ'), 
             price: s.price, 
-            startTime: returnTime 
+            startTime: returnTime,
+            type: s.type, // ✅ เพิ่ม
+            priceMultiplier: s.multi // ✅ เพิ่ม
           });
         }
       }
@@ -102,12 +114,52 @@ export class AppController implements OnModuleInit {
     return { status: 'success', user: { ...user, role } };
   }
 
+  // ✅ [Phase 10] Admin เพิ่มขบวนรถใหม่
+  @Post('trains')
+  async createTrain(@Body() body: any) {
+    // body: { source: "ชื่อสถานี", destination: "ชื่อสถานี", trainName, departureTime, type, priceMultiplier }
+    const origin = await this.stationRepo.findOneBy({ name: body.source });
+    const destination = await this.stationRepo.findOneBy({ name: body.destination });
+
+    if (!origin || !destination) {
+      return { status: 'error', message: 'ไม่พบชื่อสถานีต้นทางหรือปลายทาง' };
+    }
+
+    // คำนวณราคาคร่าวๆ (สมมติ: 100 บาท * ตัวคูณ) หรือรับมาตรงๆก็ได้
+    // ในที่นี้ขอรับ price มาจาก body ด้วย หรือถ้าไม่มีให้ Default 500
+    const basePrice = body.price || 500; 
+
+    const newSchedule = await this.scheduleRepo.save({
+      trainName: body.trainName,
+      origin: origin,
+      destination: destination,
+      startTime: body.departureTime, // รับเป็น HH:mm
+      type: body.type,
+      priceMultiplier: body.priceMultiplier,
+      price: basePrice
+    });
+
+    return { status: 'success', data: newSchedule };
+  }
+
   @Get('stations')
   async getStations() { return this.stationRepo.find({ order: { name: 'ASC' } }); }
 
+  // ✅ [Phase 10] แก้ไข search ให้ User ดูย้อนหลังได้ 
+  // (Logic ปัจจุบัน return ทั้งหมดอยู่แล้ว Frontend แค่ต้องเลือกแสดงผล)
   @Get('search')
-  async searchTrain(@Query('origin') originId: number, @Query('dest') destId: number) {
-    return this.scheduleRepo.find({ where: { origin: { id: originId }, destination: { id: destId } }, relations: ['origin', 'destination'] });
+  async searchTrain(
+    @Query('origin') originId: number, 
+    @Query('dest') destId: number,
+    @Query('includePast') includePast: string // รับค่ามาเผื่ออนาคตอยากกรอง
+  ) {
+    // ปัจจุบันคืนค่า "ตารางเดินรถ (Schedule)" ทั้งหมด ซึ่งเป็น Template เวลา
+    // การเช็ค "ย้อนหลัง" จะทำโดยเทียบเวลากับปัจจุบันที่ Frontend
+    return this.scheduleRepo.find({ 
+      where: { origin: { id: originId }, destination: { id: destId } }, 
+      relations: ['origin', 'destination'],
+      order: { startTime: 'ASC' }
+    });
   }
 
   @Get('check-seats')
@@ -127,19 +179,16 @@ export class AppController implements OnModuleInit {
     const isTaken = await this.bookingRepo.findOneBy({ schedule: { id: scheduleId }, travelDate: date, seatNumber });
     if (isTaken) return { status: 'error', message: 'ที่นั่งนี้ถูกจองไปแล้ว' };
 
-    // 🔥 สร้าง PNR (รหัสตั๋ว) แบบสุ่ม เช่น "X7B29A"
+    // 🔥 สร้าง PNR
     const pnr = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-    // บันทึกการจอง (เพิ่ม status: 'confirmed' เพื่อให้ Admin รู้ว่าจ่ายแล้ว)
-    // *หมายเหตุ: ต้องแน่ใจว่า Entity Booking ของคุณมี field 'pnr' และ 'status' 
-    // ถ้ายังไม่มี field ให้ลบ pnr/status ออกก่อนแล้วไปเติมใน Entity
     await this.bookingRepo.save({ 
       user, 
       schedule, 
       travelDate: date, 
       seatNumber, 
-      pnr: pnr, 
-      status: 'confirmed' 
+      pnr: pnr, // ต้องมี field pnr ใน entity
+      status: 'confirmed' // ต้องมี field status ใน entity
     });
 
     return { status: 'success', message: 'จองสำเร็จ!', pnr };
@@ -155,13 +204,12 @@ export class AppController implements OnModuleInit {
   async getAllBookings() {
     return this.bookingRepo.find({
       relations: ['user', 'schedule', 'schedule.origin', 'schedule.destination'], 
-      order: { createdAt: 'DESC' } // เรียงจากล่าสุดไปเก่าสุดเสมอ
+      order: { createdAt: 'DESC' }
     });
   }
 
   @Delete('bookings/:id')
   async cancelBooking(@Param('id') id: number) {
-    // ในระบบจริงอาจจะเช็คก่อนว่า status confirmed ไหม ถ้าใช่ห้ามลบ
     await this.bookingRepo.delete(id);
     return { status: 'success', message: '✅ ยกเลิกเรียบร้อย' };
   }

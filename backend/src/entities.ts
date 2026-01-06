@@ -29,7 +29,7 @@ export class Schedule {
   @PrimaryGeneratedColumn()
   id: number;
 
-  // ✅ เพิ่มชื่อขบวน และจำกัดตัวอักษรแค่ 20 ตัว
+  // ✅ ชื่อขบวน จำกัด 20 ตัวอักษร
   @Column({ length: 20 })
   trainName: string;
 
@@ -44,6 +44,14 @@ export class Schedule {
 
   @Column()
   startTime: string; // เวลาออกรถ
+
+  // ✅ [Phase 10] เพิ่มประเภทรถ (เช่น รถพัดลม, รถแอร์)
+  @Column({ default: 'fan' }) 
+  type: string;
+
+  // ✅ [Phase 10] เพิ่มตัวคูณราคา (เช่น 1.0, 1.5) เก็บเป็นทศนิยม
+  @Column('float', { default: 1.0 }) 
+  priceMultiplier: number;
 
   @OneToMany(() => Booking, (booking) => booking.schedule)
   bookings: Booking[];
