@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { 
   FaBed, FaSnowflake, FaFan, FaArrowUp, FaArrowDown, 
   FaChartLine, FaTicketAlt, FaTrash, FaTrain, FaPlus,
-  FaToilet, FaDoorOpen, FaWalking 
+  FaToilet, FaDoorOpen, FaWalking, FaHistory, FaPrint 
 } from 'react-icons/fa';
 
 const FONT_URL = "https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap";
@@ -40,18 +40,13 @@ const styles: { [key: string]: React.CSSProperties } = {
   trainCarriage: { backgroundColor: '#fff', border: '1px solid #ddd', borderRadius: '20px', padding: '20px', position: 'relative' as 'relative', minWidth: '340px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' },
 };
 
-// ----------------------------------------------------
-// 🔥 DATA: สถานีรถไฟจริง (Major Stations All Regions)
-// ----------------------------------------------------
+// DATA: สถานีรถไฟจริง
 const STATIONS = [
-  // --- ส่วนกลาง ---
   { id: 1, name: 'กรุงเทพอภิวัฒน์ (Bang Sue)', km: 0, region: 'Central' },
   { id: 2, name: 'ดอนเมือง (Don Mueang)', km: 22, region: 'Central' },
   { id: 3, name: 'รังสิต (Rangsit)', km: 30, region: 'Central' },
   { id: 5, name: 'อยุธยา (Ayutthaya)', km: 71, region: 'Central' },
   { id: 6, name: 'แก่งคอย (Kaeng Khoi)', km: 125, region: 'Central' },
-
-  // --- สายเหนือ (Northern Line) ---
   { id: 101, name: 'ลพบุรี (Lop Buri)', km: 133, region: 'North' },
   { id: 102, name: 'นครสวรรค์ (Nakhon Sawan)', km: 246, region: 'North' },
   { id: 103, name: 'พิจิตร (Phichit)', km: 347, region: 'North' },
@@ -63,8 +58,6 @@ const STATIONS = [
   { id: 109, name: 'ขุนตาน (Khun Tan)', km: 683, region: 'North' },
   { id: 110, name: 'ลำพูน (Lamphun)', km: 729, region: 'North' },
   { id: 111, name: 'เชียงใหม่ (Chiang Mai)', km: 751, region: 'North' },
-
-  // --- สายตะวันออกเฉียงเหนือ (Northeastern Line) ---
   { id: 201, name: 'สระบุรี (Saraburi)', km: 113, region: 'NE' },
   { id: 202, name: 'ปากช่อง (Pak Chong)', km: 180, region: 'NE' },
   { id: 203, name: 'นครราชสีมา (Nakhon Ratchasima)', km: 264, region: 'NE' },
@@ -75,8 +68,6 @@ const STATIONS = [
   { id: 208, name: 'ขอนแก่น (Khon Kaen)', km: 450, region: 'NE' },
   { id: 209, name: 'อุดรธานี (Udon Thani)', km: 569, region: 'NE' },
   { id: 210, name: 'หนองคาย (Nong Khai)', km: 621, region: 'NE' },
-
-  // --- สายใต้ (Southern Line) ---
   { id: 301, name: 'นครปฐม (Nakhon Pathom)', km: 64, region: 'South' },
   { id: 302, name: 'ราชบุรี (Ratchaburi)', km: 117, region: 'South' },
   { id: 303, name: 'เพชรบุรี (Phetchaburi)', km: 167, region: 'South' },
@@ -90,8 +81,6 @@ const STATIONS = [
   { id: 311, name: 'หาดใหญ่ (Hat Yai)', km: 945, region: 'South' },
   { id: 312, name: 'ยะลา (Yala)', km: 1055, region: 'South' },
   { id: 313, name: 'สุไหงโก-ลก (Sungai Kolok)', km: 1159, region: 'South' },
-
-    // --- สายตะวันออก (Eastern Line) ---
   { id: 401, name: 'ฉะเชิงเทรา (Chachoengsao)', km: 61, region: 'East' },
   { id: 402, name: 'ปราจีนบุรี (Prachin Buri)', km: 122, region: 'East' },
   { id: 403, name: 'พัทยา (Pattaya)', km: 155, region: 'East' },
@@ -119,6 +108,204 @@ const loadState = (key: string, defaultValue: any) => {
     } catch { return defaultValue; }
 };
 
+// --- Sub-Components (Move outside main App to prevent re-render focus loss) ---
+// ✅ FIX: ใส่ type any ให้ props เพื่อแก้ error ตัวแดง
+
+const RenderSeat = ({ row, n, takenSeats, currentSelectedSeats, setCurrentSelectedSeats, searchParams }: any) => {
+    const seatNum = (row * 4) + n;
+    const isTaken = takenSeats.includes(seatNum);
+    const isSelected = currentSelectedSeats.includes(seatNum);
+    return (
+      <button key={n} disabled={isTaken}
+          style={{ ...styles.seatBtn, backgroundColor: isTaken ? THEME.seatTaken : (isSelected ? THEME.seatSelected : THEME.seatAvailable), color: isSelected || isTaken ? '#fff' : THEME.textMain, cursor: isTaken ? 'not-allowed' : 'pointer' }}
+          onClick={() => isSelected ? setCurrentSelectedSeats(currentSelectedSeats.filter((s: number) => s !== seatNum)) : (currentSelectedSeats.length < searchParams.passengers ? setCurrentSelectedSeats([...currentSelectedSeats, seatNum]) : alert('ครบจำนวนแล้ว'))}
+      > {seatNum} </button>
+    );
+};
+
+const SeatMap = ({ takenSeats, currentSelectedSeats, setCurrentSelectedSeats, searchParams }: any) => (
+  <div className="d-flex flex-column align-items-center">
+      <div className="d-flex align-items-center gap-2 mb-3 text-secondary"><FaArrowUp/> <span>หัวขบวน (Front)</span></div>
+      <div style={styles.trainCarriage}>
+         <div className="d-flex justify-content-between mb-4 pb-3 border-bottom text-secondary">
+             <div className="d-flex gap-2 align-items-center"><FaToilet size={20}/> <span>ห้องน้ำ</span></div>
+             <div className="d-flex gap-2 align-items-center"><FaDoorOpen size={20}/> <span>ทางขึ้น-ลง</span></div>
+         </div>
+         <div className="d-flex flex-column gap-2 align-items-center">
+            {Array.from({length: 10}).map((_, row) => (
+                <div key={row} className="d-flex gap-4">
+                    <div className="d-flex gap-1">{[1, 2].map(n => <RenderSeat key={n} row={row} n={n} takenSeats={takenSeats} currentSelectedSeats={currentSelectedSeats} setCurrentSelectedSeats={setCurrentSelectedSeats} searchParams={searchParams} />)}</div>
+                    <div className="d-flex align-items-center justify-content-center" style={{width: '40px', color: '#ccc', fontSize: '10px'}}>
+                        <span style={{writingMode: 'vertical-rl', transform: 'rotate(180deg)'}}><FaWalking/> WALK</span>
+                    </div>
+                    <div className="d-flex gap-1">{[3, 4].map(n => <RenderSeat key={n} row={row} n={n} takenSeats={takenSeats} currentSelectedSeats={currentSelectedSeats} setCurrentSelectedSeats={setCurrentSelectedSeats} searchParams={searchParams} />)}</div>
+                </div>
+            ))}
+         </div>
+      </div>
+  </div>
+);
+
+// ✅ Separated AdminDashboard Component
+const AdminDashboard = ({ bookings, trains, setPage, newTrain, setNewTrain, handleAddTrain, handleDeleteTrain, cancelTicket }: any) => {
+    const totalRevenue = bookings.filter((b: any) => b.status === 'confirmed').reduce((sum: number, b: any) => sum + b.price, 0);
+    const activeBookings = bookings.filter((b: any) => b.status === 'confirmed').length;
+
+    return (
+        <div className="container mt-4 mb-5">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h2 className="fw-bold" style={{color: THEME.primary}}>⚙️ Admin Dashboard</h2>
+                <button className="btn btn-outline-secondary" onClick={() => setPage('home')}>กลับหน้าหลัก</button>
+            </div>
+
+            <div className="row g-4 mb-5">
+                <div className="col-md-4">
+                    <div style={{...styles.trainCarriage, padding: '20px', display: 'flex', alignItems: 'center', gap: '15px'}}>
+                        <div className="bg-warning bg-opacity-10 p-3 rounded-circle text-warning"><FaChartLine size={24}/></div>
+                        <div><div className="text-muted small">ยอดขายรวม</div><h4 className="m-0 fw-bold">{totalRevenue.toLocaleString()} ฿</h4></div>
+                    </div>
+                </div>
+                <div className="col-md-4">
+                    <div style={{...styles.trainCarriage, padding: '20px', display: 'flex', alignItems: 'center', gap: '15px'}}>
+                        <div className="bg-success bg-opacity-10 p-3 rounded-circle text-success"><FaTicketAlt size={24}/></div>
+                        <div><div className="text-muted small">ตั๋วที่ขายแล้ว</div><h4 className="m-0 fw-bold">{activeBookings} ใบ</h4></div>
+                    </div>
+                </div>
+                <div className="col-md-4">
+                    <div style={{...styles.trainCarriage, padding: '20px', display: 'flex', alignItems: 'center', gap: '15px'}}>
+                        <div className="bg-primary bg-opacity-10 p-3 rounded-circle text-primary"><FaTrain size={24}/></div>
+                        <div><div className="text-muted small">จำนวนเที่ยวรถ</div><h4 className="m-0 fw-bold">{trains.length} ขบวน</h4></div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="row g-4">
+                <div className="col-lg-8">
+                    <div className="card border-0 shadow-sm mb-4" style={{borderRadius: '15px', overflow: 'hidden'}}>
+                        <div className="card-header bg-white py-3"><h5 className="m-0 fw-bold">รายการจองล่าสุด</h5></div>
+                        <div className="table-responsive">
+                            <table className="table table-hover mb-0 align-middle">
+                                <thead className="bg-light text-secondary small">
+                                    <tr><th>PNR</th><th>User</th><th>ขบวน</th><th>ราคา</th><th>สถานะ</th><th>จัดการ</th></tr>
+                                </thead>
+                                <tbody>
+                                    {[...bookings].reverse().slice(0, 5).map((b: any, i: number) => (
+                                        <tr key={i}>
+                                            <td className="fw-bold">{b.pnr}</td>
+                                            <td>{b.user}</td>
+                                            <td>{b.trainName}<br/><small className="text-muted">{b.date} {b.time}</small></td>
+                                            <td className="fw-bold">{b.price} ฿</td>
+                                            <td><span className={`badge bg-${b.status === 'confirmed' ? 'success' : 'secondary'}`}>{b.status}</span></td>
+                                            <td>{b.status === 'confirmed' && <button className="btn btn-sm btn-outline-danger" onClick={() => cancelTicket(b, true)}><FaTrash/></button>}</td>
+                                        </tr>
+                                    ))}
+                                    {bookings.length === 0 && <tr><td colSpan={6} className="text-center py-4">ไม่มีข้อมูล</td></tr>}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div className="card border-0 shadow-sm mb-4" style={{borderRadius: '15px', overflow: 'hidden'}}>
+                        <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 className="m-0 fw-bold text-primary">จัดการเที่ยวรถ (Manage Trains)</h5>
+                            <span className="badge bg-primary rounded-pill">{trains.length} ขบวน</span>
+                        </div>
+                        <div className="table-responsive" style={{maxHeight: '400px', overflowY: 'auto'}}>
+                            <table className="table table-hover mb-0 align-middle">
+                                <thead className="bg-light text-secondary small sticky-top">
+                                    <tr>
+                                        <th>ชื่อขบวน</th>
+                                        <th>เวลา</th>
+                                        <th>ประเภท</th>
+                                        <th>ราคาฐาน</th>
+                                        <th>จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {trains.map((t: any, i: number) => (
+                                        <tr key={i}>
+                                            <td className="fw-bold">{t.name}</td>
+                                            <td>{t.time} น.</td>
+                                            <td>
+                                                <span className="badge bg-light text-dark border">
+                                                    {t.type === 'Fan' ? 'รถพัดลม' : t.type === 'Seat_AC' ? 'นั่งแอร์' : t.type.includes('Sleep') ? 'นอนแอร์' : t.type}
+                                                </span>
+                                            </td>
+                                            <td>x{t.basePrice}</td>
+                                            <td>
+                                                <button 
+                                                    className="btn btn-sm btn-outline-danger" 
+                                                    onClick={() => handleDeleteTrain(t.id)}
+                                                    title="ลบเที่ยวรถนี้"
+                                                >
+                                                    <FaTrash/> ลบ
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {trains.length === 0 && <tr><td colSpan={5} className="text-center py-4">ไม่มีข้อมูลเที่ยวรถ</td></tr>}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="col-lg-4">
+                    <div className="card border-0 shadow-sm mb-4" style={{borderRadius: '15px'}}>
+                        <div className="card-header bg-primary text-white py-3"><h5 className="m-0 fw-bold"><FaPlus className="me-2"/> เพิ่มเที่ยวรถใหม่</h5></div>
+                        <div className="card-body">
+                            <div className="mb-2">
+                                <label className="small text-muted">ชื่อขบวน</label>
+                                <input className="form-control" value={newTrain.name} onChange={e => setNewTrain({...newTrain, name: e.target.value})} placeholder="เช่น ด่วน 85" />
+                            </div>
+
+                            <div className="row g-2 mb-2">
+                                <div className="col-6">
+                                    <label className="small text-muted">ต้นทาง</label>
+                                    <select className="form-select" value={newTrain.origin} onChange={e => setNewTrain({...newTrain, origin: e.target.value})}>
+                                        <option value="">เลือก</option>
+                                        {STATIONS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="col-6">
+                                    <label className="small text-muted">ปลายทาง</label>
+                                    <select className="form-select" value={newTrain.dest} onChange={e => setNewTrain({...newTrain, dest: e.target.value})}>
+                                        <option value="">เลือก</option>
+                                        {STATIONS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="mb-2">
+                                <label className="small text-muted">เวลาออก</label>
+                                <input type="time" className="form-control" value={newTrain.time} onChange={e => setNewTrain({...newTrain, time: e.target.value})} />
+                            </div>
+                            <div className="row g-2 mb-3">
+                                <div className="col-6">
+                                    <label className="small text-muted">ประเภท</label>
+                                    <select className="form-select" value={newTrain.type} onChange={e => setNewTrain({...newTrain, type: e.target.value})}>
+                                        <option value="Fan">รถพัดลม</option>
+                                        <option value="Seat_AC">นั่งแอร์</option>
+                                        <option value="Sleep_AC">นอนแอร์</option>
+                                        <option value="Sleep">นอน/นั่ง</option>
+                                    </select>
+                                </div>
+                                <div className="col-6">
+                                    <label className="small text-muted">ตัวคูณราคา</label>
+                                    <input type="number" step="0.1" className="form-control" value={newTrain.basePrice} onChange={e => setNewTrain({...newTrain, basePrice: parseFloat(e.target.value)})} />
+                                </div>
+                            </div>
+                            <button className="btn btn-primary w-100 fw-bold" onClick={handleAddTrain}>บันทึกเที่ยวรถ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- Main App Component ---
+
 export default function App() {
   const [page, setPage] = useState('home');
   const [showAuth, setShowAuth] = useState(false);
@@ -137,8 +324,8 @@ export default function App() {
   const [selectedTrain, setSelectedTrain] = useState<any>(null);
   const [takenSeats, setTakenSeats] = useState<number[]>([]);
   const [currentSelectedSeats, setCurrentSelectedSeats] = useState<number[]>([]);
-
-  // ✅ State รับค่า origin และ dest
+  
+  const [includePast, setIncludePast] = useState(false);
   const [newTrain, setNewTrain] = useState({ name: '', time: '', type: 'Fan', basePrice: 1.0, origin: '', dest: '' });
 
   useEffect(() => {
@@ -158,13 +345,13 @@ export default function App() {
   const handleAuth = () => {
       if (!authForm.username || !authForm.password) return alert("กรุณากรอกข้อมูลให้ครบ");
       if (authMode === 'register') {
-          if (registeredUsers.find(u => u.username === authForm.username)) return alert("ชื่อผู้ใช้นี้มีอยู่แล้ว");
+          if (registeredUsers.find((u: any) => u.username === authForm.username)) return alert("ชื่อผู้ใช้นี้มีอยู่แล้ว");
           const newUser = { username: authForm.username, password: authForm.password, role: 'user' };
           setRegisteredUsers([...registeredUsers, newUser]);
           setCurrentUser({ username: newUser.username, role: newUser.role });
           setShowAuth(false); setAuthForm({ username: '', password: '' });
       } else {
-          const user = registeredUsers.find(u => u.username === authForm.username && u.password === authForm.password);
+          const user = registeredUsers.find((u: any) => u.username === authForm.username && u.password === authForm.password);
           if (user) { 
               setCurrentUser({ username: user.username, role: user.role }); 
               setShowAuth(false); setAuthForm({ username: '', password: '' }); 
@@ -177,13 +364,94 @@ export default function App() {
 
   const logout = () => { setCurrentUser(null); setPage('home'); };
 
+  // ✅✅✅ Phase 12: ฟังก์ชันพิมพ์ตั๋ว ✅✅✅
+  const handlePrintTicket = (ticket: any) => {
+    const printWindow = window.open('', '', 'width=600,height=600');
+    if(printWindow) {
+        printWindow.document.write(`
+          <html>
+            <head>
+              <title>Print Ticket - ${ticket.pnr}</title>
+              <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+              <style>
+                body { font-family: 'Sarabun', sans-serif; padding: 20px; text-align: center; background-color: #f9f9f9; }
+                .ticket { 
+                    border: 2px dashed #B28237; 
+                    padding: 30px; 
+                    max-width: 500px; 
+                    margin: 0 auto; 
+                    background: white; 
+                    border-radius: 15px; 
+                    position: relative;
+                }
+                .header { color: #B28237; margin-bottom: 20px; font-size: 24px; font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+                .row { display: flex; justify-content: space-between; margin-bottom: 10px; text-align: left; }
+                .label { font-weight: bold; color: #555; }
+                .value { color: #000; font-weight: 500; }
+                .price { font-size: 28px; color: #d9534f; font-weight: bold; margin-top: 20px; }
+                .footer { margin-top: 30px; font-size: 12px; color: #999; }
+                .logo { font-size: 40px; margin-bottom: 10px; }
+              </style>
+            </head>
+            <body>
+              <div class="ticket">
+                <div class="logo">🚆</div>
+                <div class="header">CoE Railway Ticket</div>
+                
+                <div class="row">
+                    <span class="label">PNR (รหัสการจอง):</span>
+                    <span class="value">${ticket.pnr}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Passenger (ผู้โดยสาร):</span>
+                    <span class="value">${ticket.user}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Train (ขบวน):</span>
+                    <span class="value">${ticket.trainName}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Date (วันที่):</span>
+                    <span class="value">${ticket.date} | ${ticket.time}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Route (เส้นทาง):</span>
+                    <span class="value">${ticket.origin} ➝ ${ticket.dest}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Seats (ที่นั่ง):</span>
+                    <span class="value">${ticket.seats.join(', ')}</span>
+                </div>
+                
+                <div class="price">${ticket.price} THB</div>
+                
+                <div class="footer">Thank you for choosing CoE Railway.<br/>ขอให้มีความสุขกับการเดินทาง</div>
+              </div>
+              <script>
+                 window.onload = function() { window.print(); window.close(); }
+              </script>
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+    }
+  };
+
   const handleSearch = () => {
     if(!searchParams.origin || !searchParams.dest || !searchParams.date) return alert('กรุณากรอกข้อมูลให้ครบถ้วน');
     if(searchParams.origin === searchParams.dest) return alert('ต้นทางและปลายทางต้องไม่เหมือนกัน');
 
     const results: any[] = [];
-    
-    trains.forEach(train => {
+    const now = new Date(); // เวลาปัจจุบัน
+    const searchDateObj = new Date(searchParams.date);
+    searchDateObj.setHours(0,0,0,0);
+    const todayObj = new Date();
+    todayObj.setHours(0,0,0,0);
+
+    const isToday = searchDateObj.getTime() === todayObj.getTime();
+    const isPastDate = searchDateObj.getTime() < todayObj.getTime();
+
+    trains.forEach((train: any) => {
         let availableClasses = CLASS_OPTIONS;
         if (train.type === 'Fan') availableClasses = CLASS_OPTIONS.filter(c => c.id.includes('FAN') || c.id === '2_AC_ST');
         if (train.type === 'Seat_AC') availableClasses = CLASS_OPTIONS.filter(c => c.id.includes('AC') || c.id.includes('FAN'));
@@ -200,27 +468,40 @@ export default function App() {
                  const price = Math.round((dist * 0.5 * train.basePrice * cls.factor)) + 50; 
                  const speed = (train.name.includes('ด่วน') || train.name.includes('Special')) ? 75 : 55;
                  const totalMinutes = Math.round((dist / speed) * 60) + 20; 
-                 
                  const hrs = Math.floor(totalMinutes / 60);
                  const mins = totalMinutes % 60;
                  const realTravelTime = hrs > 0 ? `${hrs} ชม. ${mins} น.` : `${mins} น.`;
+
+                 let isDeparted = false;
+                 if (isPastDate) {
+                     isDeparted = true; 
+                 } else if (isToday) {
+                     const [th, tm] = train.time.split(':').map(Number);
+                     const trainTime = new Date();
+                     trainTime.setHours(th, tm, 0, 0);
+                     if (trainTime < now) isDeparted = true;
+                 }
 
                  results.push({ 
                      ...train, 
                      classInfo: cls, 
                      price: price, 
-                     travelTime: realTravelTime
+                     travelTime: realTravelTime,
+                     isDeparted: isDeparted 
                  });
             }
         });
     });
-    setSearchResults(results.sort((a,b) => a.time.localeCompare(b.time)));
+
+    const finalResults = includePast ? results : results.filter(r => !r.isDeparted);
+    setSearchResults(finalResults.sort((a,b) => a.time.localeCompare(b.time)));
   };
 
   const selectTicket = (item: any) => {
+      if (item.isDeparted) return alert("❌ รถขบวนนี้ออกเดินทางไปแล้ว");
       if (!currentUser) { setShowAuth(true); return; }
       setSelectedTrain(item); setCurrentSelectedSeats([]);
-      const taken = bookings.filter(b => b.date === searchParams.date && b.trainId === item.id && b.classId === item.classInfo.id && b.status !== 'cancelled').flatMap(b => b.seats);
+      const taken = bookings.filter((b: any) => b.date === searchParams.date && b.trainId === item.id && b.classId === item.classInfo.id && b.status !== 'cancelled').flatMap((b: any) => b.seats);
       setTakenSeats(taken);
       setPage('seat');
   };
@@ -248,11 +529,10 @@ export default function App() {
           if (diffDays < 1) { alert("❌ ไม่สามารถยกเลิกได้ (ต้องแจ้งล่วงหน้า 1 วัน)"); return; }
       }
       if (confirm("ยืนยันการยกเลิกตั๋ว?")) {
-          setBookings(bookings.map(b => b.id === booking.id ? { ...b, status: 'cancelled' } : b));
+          setBookings(bookings.map((b: any) => b.id === booking.id ? { ...b, status: 'cancelled' } : b));
       }
   };
 
-  // ✅ แก้ไขฟังก์ชันบันทึก
   const handleAddTrain = () => {
       if(!newTrain.name || !newTrain.time) return alert("กรุณากรอกชื่อและเวลา");
       
@@ -263,157 +543,13 @@ export default function App() {
       alert("เพิ่มเที่ยวรถเรียบร้อย!");
   };
 
+  const handleDeleteTrain = (id: string) => {
+      if(confirm("ต้องการลบเที่ยวรถนี้ใช่หรือไม่?")) {
+          setTrains(trains.filter((t: any) => t.id !== id));
+      }
+  };
+
   const resetSystem = () => { if(confirm('⚠️ ล้างข้อมูลระบบ?')) { localStorage.clear(); window.location.reload(); } }
-
-  const SeatMap = () => (
-    <div className="d-flex flex-column align-items-center">
-        <div className="d-flex align-items-center gap-2 mb-3 text-secondary"><FaArrowUp/> <span>หัวขบวน (Front)</span></div>
-        <div style={styles.trainCarriage}>
-           <div className="d-flex justify-content-between mb-4 pb-3 border-bottom text-secondary">
-               <div className="d-flex gap-2 align-items-center"><FaToilet size={20}/> <span>ห้องน้ำ</span></div>
-               <div className="d-flex gap-2 align-items-center"><FaDoorOpen size={20}/> <span>ทางขึ้น-ลง</span></div>
-           </div>
-           <div className="d-flex flex-column gap-2 align-items-center">
-              {Array.from({length: 10}).map((_, row) => (
-                  <div key={row} className="d-flex gap-4">
-                      <div className="d-flex gap-1">{[1, 2].map(n => renderSeat(row, n))}</div>
-                      <div className="d-flex align-items-center justify-content-center" style={{width: '40px', color: '#ccc', fontSize: '10px'}}>
-                          <span style={{writingMode: 'vertical-rl', transform: 'rotate(180deg)'}}><FaWalking/> WALK</span>
-                      </div>
-                      <div className="d-flex gap-1">{[3, 4].map(n => renderSeat(row, n))}</div>
-                  </div>
-              ))}
-           </div>
-        </div>
-    </div>
-  );
-
-  const renderSeat = (row: number, n: number) => {
-      const seatNum = (row * 4) + n;
-      const isTaken = takenSeats.includes(seatNum);
-      const isSelected = currentSelectedSeats.includes(seatNum);
-      return (
-        <button key={n} disabled={isTaken}
-            style={{ ...styles.seatBtn, backgroundColor: isTaken ? THEME.seatTaken : (isSelected ? THEME.seatSelected : THEME.seatAvailable), color: isSelected || isTaken ? '#fff' : THEME.textMain, cursor: isTaken ? 'not-allowed' : 'pointer' }}
-            onClick={() => isSelected ? setCurrentSelectedSeats(currentSelectedSeats.filter(s => s !== seatNum)) : (currentSelectedSeats.length < searchParams.passengers ? setCurrentSelectedSeats([...currentSelectedSeats, seatNum]) : alert('ครบจำนวนแล้ว'))}
-        > {seatNum} </button>
-      );
-  };
-
-  // --- Admin Dashboard (Internal Component) ---
-  const AdminDashboard = () => {
-      const totalRevenue = bookings.filter(b => b.status === 'confirmed').reduce((sum, b) => sum + b.price, 0);
-      const activeBookings = bookings.filter(b => b.status === 'confirmed').length;
-
-      return (
-          <div className="container mt-4 mb-5">
-              <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h2 className="fw-bold" style={{color: THEME.primary}}>⚙️ Admin Dashboard</h2>
-                  <button className="btn btn-outline-secondary" onClick={() => setPage('home')}>กลับหน้าหลัก</button>
-              </div>
-
-              <div className="row g-4 mb-5">
-                  <div className="col-md-4">
-                      <div style={{...styles.trainCarriage, padding: '20px', display: 'flex', alignItems: 'center', gap: '15px'}}>
-                          <div className="bg-warning bg-opacity-10 p-3 rounded-circle text-warning"><FaChartLine size={24}/></div>
-                          <div><div className="text-muted small">ยอดขายรวม</div><h4 className="m-0 fw-bold">{totalRevenue.toLocaleString()} ฿</h4></div>
-                      </div>
-                  </div>
-                  <div className="col-md-4">
-                      <div style={{...styles.trainCarriage, padding: '20px', display: 'flex', alignItems: 'center', gap: '15px'}}>
-                          <div className="bg-success bg-opacity-10 p-3 rounded-circle text-success"><FaTicketAlt size={24}/></div>
-                          <div><div className="text-muted small">ตั๋วที่ขายแล้ว</div><h4 className="m-0 fw-bold">{activeBookings} ใบ</h4></div>
-                      </div>
-                  </div>
-                  <div className="col-md-4">
-                      <div style={{...styles.trainCarriage, padding: '20px', display: 'flex', alignItems: 'center', gap: '15px'}}>
-                          <div className="bg-primary bg-opacity-10 p-3 rounded-circle text-primary"><FaTrain size={24}/></div>
-                          <div><div className="text-muted small">จำนวนเที่ยวรถ</div><h4 className="m-0 fw-bold">{trains.length} ขบวน</h4></div>
-                      </div>
-                  </div>
-              </div>
-
-              <div className="row g-4">
-                  <div className="col-lg-8">
-                      <div className="card border-0 shadow-sm mb-4" style={{borderRadius: '15px', overflow: 'hidden'}}>
-                          <div className="card-header bg-white py-3"><h5 className="m-0 fw-bold">รายการจองล่าสุด</h5></div>
-                          <div className="table-responsive">
-                              <table className="table table-hover mb-0 align-middle">
-                                  <thead className="bg-light text-secondary small">
-                                      <tr><th>PNR</th><th>User</th><th>ขบวน</th><th>ราคา</th><th>สถานะ</th><th>จัดการ</th></tr>
-                                  </thead>
-                                  <tbody>
-                                      {[...bookings].reverse().slice(0, 5).map((b, i) => (
-                                          <tr key={i}>
-                                              <td className="fw-bold">{b.pnr}</td>
-                                              <td>{b.user}</td>
-                                              <td>{b.trainName}<br/><small className="text-muted">{b.date} {b.time}</small></td>
-                                              <td className="fw-bold">{b.price} ฿</td>
-                                              <td><span className={`badge bg-${b.status === 'confirmed' ? 'success' : 'secondary'}`}>{b.status}</span></td>
-                                              <td>{b.status === 'confirmed' && <button className="btn btn-sm btn-outline-danger" onClick={() => cancelTicket(b, true)}><FaTrash/></button>}</td>
-                                          </tr>
-                                      ))}
-                                      {bookings.length === 0 && <tr><td colSpan={6} className="text-center py-4">ไม่มีข้อมูล</td></tr>}
-                                  </tbody>
-                              </table>
-                          </div>
-                      </div>
-                  </div>
-
-                  <div className="col-lg-4">
-                      <div className="card border-0 shadow-sm mb-4" style={{borderRadius: '15px'}}>
-                          <div className="card-header bg-primary text-white py-3"><h5 className="m-0 fw-bold"><FaPlus className="me-2"/> เพิ่มเที่ยวรถใหม่</h5></div>
-                          <div className="card-body">
-                              <div className="mb-2">
-                                  <label className="small text-muted">ชื่อขบวน</label>
-                                  <input className="form-control" value={newTrain.name} onChange={e => setNewTrain({...newTrain, name: e.target.value})} placeholder="เช่น ด่วน 85" />
-                              </div>
-
-                              {/* ✅✅✅ Dropdown เลือกต้นทาง/ปลายทาง ✅✅✅ */}
-                              <div className="row g-2 mb-2">
-                                  <div className="col-6">
-                                      <label className="small text-muted">ต้นทาง</label>
-                                      <select className="form-select" value={newTrain.origin} onChange={e => setNewTrain({...newTrain, origin: e.target.value})}>
-                                          <option value="">เลือก</option>
-                                          {STATIONS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                      </select>
-                                  </div>
-                                  <div className="col-6">
-                                      <label className="small text-muted">ปลายทาง</label>
-                                      <select className="form-select" value={newTrain.dest} onChange={e => setNewTrain({...newTrain, dest: e.target.value})}>
-                                          <option value="">เลือก</option>
-                                          {STATIONS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                      </select>
-                                  </div>
-                              </div>
-
-                              <div className="mb-2">
-                                  <label className="small text-muted">เวลาออก</label>
-                                  <input type="time" className="form-control" value={newTrain.time} onChange={e => setNewTrain({...newTrain, time: e.target.value})} />
-                              </div>
-                              <div className="row g-2 mb-3">
-                                  <div className="col-6">
-                                      <label className="small text-muted">ประเภท</label>
-                                      <select className="form-select" value={newTrain.type} onChange={e => setNewTrain({...newTrain, type: e.target.value})}>
-                                          <option value="Fan">รถพัดลม</option>
-                                          <option value="Seat_AC">นั่งแอร์</option>
-                                          <option value="Sleep_AC">นอนแอร์</option>
-                                          <option value="Sleep">นอน/นั่ง</option>
-                                      </select>
-                                  </div>
-                                  <div className="col-6">
-                                      <label className="small text-muted">ตัวคูณราคา</label>
-                                      <input type="number" step="0.1" className="form-control" value={newTrain.basePrice} onChange={e => setNewTrain({...newTrain, basePrice: parseFloat(e.target.value)})} />
-                                  </div>
-                              </div>
-                              <button className="btn btn-primary w-100 fw-bold" onClick={handleAddTrain}>บันทึกเที่ยวรถ</button>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      );
-  };
 
   return (
     <div style={styles.container}>
@@ -458,7 +594,18 @@ export default function App() {
       )}
 
       {/* Pages Switcher */}
-      {page === 'admin_dashboard' && currentUser?.role === 'admin' ? <AdminDashboard /> : (
+      {page === 'admin_dashboard' && currentUser?.role === 'admin' ? (
+          <AdminDashboard 
+              bookings={bookings} 
+              trains={trains} 
+              setPage={setPage} 
+              newTrain={newTrain} 
+              setNewTrain={setNewTrain} 
+              handleAddTrain={handleAddTrain} 
+              handleDeleteTrain={handleDeleteTrain} 
+              cancelTicket={cancelTicket} 
+          />
+      ) : (
         <>
             {page === 'home' && (
                 <div className="flex-grow-1 pb-5">
@@ -497,22 +644,38 @@ export default function App() {
                                     <label className="form-label fw-bold text-muted small">ผู้โดยสาร (คน)</label>
                                     <input type="number" min="1" className="form-control border-0 bg-light py-2" value={searchParams.passengers} onChange={e => setSearchParams({...searchParams, passengers: parseInt(e.target.value) || 1})} />
                                 </div>
+                                {/* Checkbox Phase 10 */}
+                                <div className="col-md-4 d-flex align-items-center pt-4">
+                                    <div className="form-check">
+                                        <input 
+                                            className="form-check-input" 
+                                            type="checkbox" 
+                                            id="includePast" 
+                                            checked={includePast}
+                                            onChange={(e) => setIncludePast(e.target.checked)}
+                                        />
+                                        <label className="form-check-label text-secondary small pt-1" htmlFor="includePast">
+                                            แสดงเที่ยวรถย้อนหลัง (Show Past Trips)
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div className="w-100 px-2 mt-5" style={{maxWidth: '1000px'}}>
                             {searchResults.length > 0 && <h4 className="mb-4 text-secondary">เที่ยวรถที่ว่าง (Available Trains)</h4>}
                             {searchResults.map((r, i) => (
-                                <div key={i} className="card border-0 shadow-sm mb-4 overflow-hidden" style={{borderRadius: '15px'}}>
+                                <div key={i} className={`card border-0 shadow-sm mb-4 overflow-hidden ${r.isDeparted ? 'bg-light opacity-75' : ''}`} style={{borderRadius: '15px'}}>
                                     <div className="card-body p-4">
                                         <div className="row align-items-center">
                                             <div className="col-md-2 text-center border-end">
-                                                <h3 className="m-0 fw-bold" style={{color: THEME.primary}}>{r.time}</h3>
-                                                <small className="text-muted">เวลาออก</small>
+                                                <h3 className="m-0 fw-bold" style={{color: r.isDeparted ? '#999' : THEME.primary}}>{r.time}</h3>
+                                                <small className="text-muted">{r.isDeparted ? 'ออกไปแล้ว' : 'เวลาออก'}</small>
                                             </div>
                                             <div className="col-md-4 ps-4">
                                                 <h5 className="mb-1 fw-bold">{r.name}</h5>
                                                 <span className="badge bg-light text-dark border me-2">{r.classInfo.name}</span>
+                                                {r.isDeparted && <span className="badge bg-secondary">Departed</span>}
                                             </div>
                                             <div className="col-md-3 text-center">
                                                 <div className="d-flex justify-content-center align-items-center gap-2 text-muted">
@@ -521,8 +684,14 @@ export default function App() {
                                                 </div>
                                             </div>
                                             <div className="col-md-3 text-end">
-                                                <h3 className="text-danger fw-bold">{r.price} ฿</h3>
-                                                <button className="btn btn-outline-warning w-100 mt-2 rounded-pill" onClick={() => selectTicket(r)}>เลือกที่นั่ง</button>
+                                                <h3 className={`fw-bold ${r.isDeparted ? 'text-muted' : 'text-danger'}`}>{r.price} ฿</h3>
+                                                <button 
+                                                    className={`btn w-100 mt-2 rounded-pill ${r.isDeparted ? 'btn-secondary disabled' : 'btn-outline-warning'}`} 
+                                                    onClick={() => selectTicket(r)}
+                                                    disabled={r.isDeparted}
+                                                >
+                                                    {r.isDeparted ? 'ไม่ว่าง' : 'เลือกที่นั่ง'}
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -562,7 +731,12 @@ export default function App() {
                         <div className="col-md-8 order-md-1">
                             <div className="bg-white p-4 rounded shadow-sm">
                                 <h4 className="text-center mb-4">เลือกที่นั่ง (Carriage Layout)</h4>
-                                <SeatMap />
+                                <SeatMap 
+                                    takenSeats={takenSeats} 
+                                    currentSelectedSeats={currentSelectedSeats} 
+                                    setCurrentSelectedSeats={setCurrentSelectedSeats} 
+                                    searchParams={searchParams} 
+                                />
                             </div>
                         </div>
                     </div>
@@ -575,7 +749,7 @@ export default function App() {
                         <h3>🎟 ตั๋วของฉัน</h3>
                         <button className="btn btn-light" onClick={() => setPage('home')}>กลับหน้าหลัก</button>
                     </div>
-                    {bookings.filter(b => b.user === currentUser.username).map((ticket, idx) => (
+                    {bookings.filter((b: any) => b.user === currentUser.username).map((ticket: any, idx: number) => (
                         <div key={idx} className="card border-0 shadow-sm mb-3" style={{borderRadius: '15px', borderLeft: `8px solid ${ticket.status === 'cancelled' ? '#999' : THEME.primary}`}}>
                             <div className="card-body p-4">
                                 <div className="row align-items-center">
@@ -592,7 +766,13 @@ export default function App() {
                                         {ticket.status === 'cancelled' ? <span className="badge bg-secondary fs-6 px-3 py-2">ยกเลิกแล้ว</span> : (
                                             <>
                                                 <h3 className="text-danger fw-bold mb-2">{ticket.price} ฿</h3>
-                                                <button className="btn btn-sm btn-outline-danger px-3" onClick={() => cancelTicket(ticket)}>ยกเลิก</button>
+                                                <div className="d-flex justify-content-end gap-2">
+                                                    {/* ✅✅✅ ปุ่มพิมพ์ตั๋ว (Phase 12) ✅✅✅ */}
+                                                    <button className="btn btn-sm btn-outline-primary px-3" onClick={() => handlePrintTicket(ticket)}>
+                                                        <FaPrint /> พิมพ์ตั๋ว
+                                                    </button>
+                                                    <button className="btn btn-sm btn-outline-danger px-3" onClick={() => cancelTicket(ticket)}>ยกเลิก</button>
+                                                </div>
                                             </>
                                         )}
                                     </div>
@@ -600,7 +780,7 @@ export default function App() {
                             </div>
                         </div>
                     ))}
-                    {bookings.filter(b => b.user === currentUser.username).length === 0 && (
+                    {bookings.filter((b: any) => b.user === currentUser.username).length === 0 && (
                         <div className="text-center py-5 text-muted">ท่านยังไม่มีประวัติการจองตั๋ว</div>
                     )}
                 </div>
