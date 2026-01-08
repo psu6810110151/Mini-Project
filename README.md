@@ -29,11 +29,12 @@
 
 | หน้าแรก (Home) | การเลือกที่นั่ง (Seat Selection) |
 | :---: | :---: |
-| <img src="path/to/image_d38f87.jpg" width="400" /> | <img src="path/to/Screenshot_2026-01-09_015746.jpg" width="400" /> |
+| <img src=<img width="1919" height="903" alt="Screenshot 2026-01-09 024317" src="https://github.com/user-attachments/assets/aa43a3c9-ab06-4c6d-a530-48c3079a469a" /> | <img src="<img width="690" height="713" alt="Screenshot 2026-01-09 024428" src="https://github.com/user-attachments/assets/f42dac8d-ada2-4461-bdf0-dc510e0d44ba" /> |
 
 | แดชบอร์ด Admin | ตัวอย่างตั๋ว (Ticket Print) |
 | :---: | :---: |
-| <img src="path/to/Screenshot_2026-01-09_015825.png" width="400" /> | <img src="path/to/Screenshot_2026-01-09_015808.png" width="400" /> |
+| <img src="<img width="1900" height="908" alt="Screenshot 2026-01-09 024709" src="https://github.com/user-attachments/assets/b4333706-a5a4-48d9-93bb-dbcdddd1f927" /> | <img src="<img width="594" height="843" alt="Screenshot 2026-01-09 025043" src="https://github.com/user-attachments/assets/dc79e8f5-de1b-4e77-8825-03eb5551a3c1" />
+ " /> |
 
 *(หมายเหตุ: กรุณาอัปโหลดรูปภาพเข้าในโฟลเดอร์ของโปรเจกต์ และแก้ไข path ให้ถูกต้อง)*
 
@@ -76,7 +77,7 @@
 
 | ชื่อ - นามสกุล | รหัสนักศึกษา | หน้าที่รับผิดชอบ |
 | :--- | :---: | :--- |
-| **1. Thanchanok Malikaew** | **6810110151** | Frontend Developer / System Design |
-| **2. Puntippa Decharun** | **6810110648** | Backend Logic / Database / Testing |
+| **1. Thanchanok Malikaew** | **6810110151** | Backend Logic / Frontend Developer /  Database / Testing / System Design |
+| **2. Puntippa Decharun** | **6810110648** | Backend Logic / Frontend Developer /  Database / Testing / System Design |
 
 ---
