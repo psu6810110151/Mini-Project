@@ -29,12 +29,11 @@
 
 | หน้าแรก (Home) | การเลือกที่นั่ง (Seat Selection) |
 | :---: | :---: |
-| <img src=<img width="1919" height="903" alt="Screenshot 2026-01-09 024317" src="https://github.com/user-attachments/assets/aa43a3c9-ab06-4c6d-a530-48c3079a469a" /> | <img src="<img width="690" height="713" alt="Screenshot 2026-01-09 024428" src="https://github.com/user-attachments/assets/f42dac8d-ada2-4461-bdf0-dc510e0d44ba" /> |
+| <img width="1919" height="903" alt="Screenshot 2026-01-09 024317" src="https://github.com/user-attachments/assets/aa43a3c9-ab06-4c6d-a530-48c3079a469a" /> | <img width="690" height="713" alt="Screenshot 2026-01-09 024428" src="https://github.com/user-attachments/assets/f42dac8d-ada2-4461-bdf0-dc510e0d44ba" /> |
 
 | แดชบอร์ด Admin | ตัวอย่างตั๋ว (Ticket Print) |
 | :---: | :---: |
-| <img src="<img width="1900" height="908" alt="Screenshot 2026-01-09 024709" src="https://github.com/user-attachments/assets/b4333706-a5a4-48d9-93bb-dbcdddd1f927" /> | <img src="<img width="594" height="843" alt="Screenshot 2026-01-09 025043" src="https://github.com/user-attachments/assets/dc79e8f5-de1b-4e77-8825-03eb5551a3c1" />
- " /> |
+| <img width="1900" height="908" alt="Screenshot 2026-01-09 024709" src="https://github.com/user-attachments/assets/b4333706-a5a4-48d9-93bb-dbcdddd1f927" /> | <img width="594" height="843" alt="Screenshot 2026-01-09 025043" src="https://github.com/user-attachments/assets/dc79e8f5-de1b-4e77-8825-03eb5551a3c1" /> |
 
 *(หมายเหตุ: กรุณาอัปโหลดรูปภาพเข้าในโฟลเดอร์ของโปรเจกต์ และแก้ไข path ให้ถูกต้อง)*
 
