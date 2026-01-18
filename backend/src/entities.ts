@@ -1,5 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, CreateDateColumn } from 'typeorm';
 
+// ✅ [ใหม่] สร้าง Enum เพื่อกำหนดว่ามี Role อะไรบ้าง
+export enum UserRole {
+  ADMIN = 'ADMIN',
+  USER = 'USER',
+}
+
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
@@ -10,6 +16,13 @@ export class User {
 
   @Column()
   password: string;
+
+  // ✅ [ใหม่] เพิ่มคอลัมน์ Role (ค่าเริ่มต้นเป็น USER)
+  @Column({
+    type: 'text',
+    default: UserRole.USER
+  })
+  role: string;
 
   @OneToMany(() => Booking, (booking) => booking.user)
   bookings: Booking[];
@@ -29,8 +42,8 @@ export class Schedule {
   @PrimaryGeneratedColumn()
   id: number;
 
-  // ✅ ชื่อขบวน จำกัด 20 ตัวอักษร
-  @Column({ length: 20 })
+  // ✅ ชื่อขบวน จำกัด 100 ตัวอักษร
+  @Column({ length: 100 })
   trainName: string;
 
   @ManyToOne(() => Station)
@@ -66,6 +79,7 @@ export class Booking {
   @CreateDateColumn()
   createdAt: Date;
 
+  
   @Column()
   travelDate: string;
 

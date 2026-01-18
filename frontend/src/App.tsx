@@ -100,30 +100,71 @@ const CLASS_OPTIONS = [
     { id: '2_FAN', name: 'ชั้น 2 พัดลม', factor: 1.0, icon: <FaFan/> },
     { id: '3_FAN', name: 'ชั้น 3 พัดลม', factor: 0.6, icon: <FaFan/> },
 ];
-
-const loadState = (key: string, defaultValue: any) => {
+const loadState = <T,>(key: string, defaultValue: T): T => {
     try {
         const saved = localStorage.getItem(key);
         return saved ? JSON.parse(saved) : defaultValue;
-    } catch { return defaultValue; }
+    } catch { 
+        return defaultValue; 
+    }
 };
 
 // --- Sub-Components (Move outside main App to prevent re-render focus loss) ---
-// ✅ FIX: ใส่ type any ให้ props เพื่อแก้ error ตัวแดง
+// 1. ประกาศ Interface เพื่อกำหนด Type ของ Props ให้ชัดเจน (ห้ามใช้ any)
+interface SeatProps {
+  row: number;
+  n: number;
+  takenSeats: number[];
+  currentSelectedSeats: number[];
+  setCurrentSelectedSeats: (seats: number[]) => void; // หรือ React.Dispatch<React.SetStateAction<number[]>>
+  searchParams: { passengers: number };
+}
 
-const RenderSeat = ({ row, n, takenSeats, currentSelectedSeats, setCurrentSelectedSeats, searchParams }: any) => {
+// 2. ใช้ Interface SeatProps แทน : any
+const RenderSeat = ({ row, n, takenSeats, currentSelectedSeats, setCurrentSelectedSeats, searchParams }: SeatProps) => {
     const seatNum = (row * 4) + n;
     const isTaken = takenSeats.includes(seatNum);
     const isSelected = currentSelectedSeats.includes(seatNum);
+
     return (
-      <button key={n} disabled={isTaken}
-          style={{ ...styles.seatBtn, backgroundColor: isTaken ? THEME.seatTaken : (isSelected ? THEME.seatSelected : THEME.seatAvailable), color: isSelected || isTaken ? '#fff' : THEME.textMain, cursor: isTaken ? 'not-allowed' : 'pointer' }}
-          onClick={() => isSelected ? setCurrentSelectedSeats(currentSelectedSeats.filter((s: number) => s !== seatNum)) : (currentSelectedSeats.length < searchParams.passengers ? setCurrentSelectedSeats([...currentSelectedSeats, seatNum]) : alert('ครบจำนวนแล้ว'))}
-      > {seatNum} </button>
+      <button 
+          key={n} 
+          disabled={isTaken}
+          style={{ 
+              ...styles.seatBtn, 
+              backgroundColor: isTaken ? THEME.seatTaken : (isSelected ? THEME.seatSelected : THEME.seatAvailable), 
+              color: isSelected || isTaken ? '#fff' : THEME.textMain, 
+              cursor: isTaken ? 'not-allowed' : 'pointer' 
+          }}
+          onClick={() => {
+              if (isSelected) {
+                  // ถ้าเลือกอยู่แล้ว ให้เอาออก
+                  setCurrentSelectedSeats(currentSelectedSeats.filter((s) => s !== seatNum));
+              } else {
+                  // ถ้ายังไม่เลือก เช็คว่าครบจำนวนคนหรือยัง
+                  if (currentSelectedSeats.length < searchParams.passengers) {
+                      setCurrentSelectedSeats([...currentSelectedSeats, seatNum]);
+                  } else {
+                      alert('ครบจำนวนแล้ว');
+                  }
+              }
+          }}
+      > 
+          {seatNum} 
+      </button>
     );
 };
 
-const SeatMap = ({ takenSeats, currentSelectedSeats, setCurrentSelectedSeats, searchParams }: any) => (
+// 1. สร้าง Interface สำหรับ SeatMap (ไม่มี row, n เพราะไม่ต้องรับมาจากข้างบน)
+interface SeatMapProps {
+  takenSeats: number[];
+  currentSelectedSeats: number[];
+  setCurrentSelectedSeats: (seats: number[]) => void;
+  searchParams: { passengers: number };
+}
+
+// 2. ใช้ SeatMapProps แทน : any
+const SeatMap = ({ takenSeats, currentSelectedSeats, setCurrentSelectedSeats, searchParams }: SeatMapProps) => (
   <div className="d-flex flex-column align-items-center">
       <div className="d-flex align-items-center gap-2 mb-3 text-secondary"><FaArrowUp/> <span>หัวขบวน (Front)</span></div>
       <div style={styles.trainCarriage}>
@@ -134,6 +175,7 @@ const SeatMap = ({ takenSeats, currentSelectedSeats, setCurrentSelectedSeats, se
          <div className="d-flex flex-column gap-2 align-items-center">
             {Array.from({length: 10}).map((_, row) => (
                 <div key={row} className="d-flex gap-4">
+                    {/* ส่ง Props ต่อให้ RenderSeat (ซึ่งเราแก้ Type ไปแล้วเมื่อกี้) */}
                     <div className="d-flex gap-1">{[1, 2].map(n => <RenderSeat key={n} row={row} n={n} takenSeats={takenSeats} currentSelectedSeats={currentSelectedSeats} setCurrentSelectedSeats={setCurrentSelectedSeats} searchParams={searchParams} />)}</div>
                     <div className="d-flex align-items-center justify-content-center" style={{width: '40px', color: '#ccc', fontSize: '10px'}}>
                         <span style={{writingMode: 'vertical-rl', transform: 'rotate(180deg)'}}><FaWalking/> WALK</span>
@@ -145,7 +187,6 @@ const SeatMap = ({ takenSeats, currentSelectedSeats, setCurrentSelectedSeats, se
       </div>
   </div>
 );
-
 // ✅ Separated AdminDashboard Component
 const AdminDashboard = ({ bookings, trains, setPage, newTrain, setNewTrain, handleAddTrain, handleDeleteTrain, cancelTicket }: any) => {
     const totalRevenue = bookings.filter((b: any) => b.status === 'confirmed').reduce((sum: number, b: any) => sum + b.price, 0);
